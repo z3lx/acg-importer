@@ -1,0 +1,10 @@
+{
+  "name": "com.z3lx.acg-importer",
+  "version": "0.1.0",
+  "displayName": "AmbientCG Importer",
+  "description": "Automatically import textures and materials from ambientCG bulk downloads via NextCloud.",
+  "author": {
+    "name": "z3lx",
+    "url": "https://github.com/z3lx"
+  }
+}
