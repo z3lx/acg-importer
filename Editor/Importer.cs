@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -7,7 +8,7 @@ namespace z3lx.ACGImporter.Editor
 {
     public static class Importer
     {
-        public static void Import(string inputPath, string outputPath, Shader shader)
+        public static void Import(string inputPath, string outputPath, Shader shader, ShaderProperty[] properties)
         {
             Texture2D albedo = null;
             Texture2D normal = null;
@@ -68,7 +69,7 @@ namespace z3lx.ACGImporter.Editor
             WriteAndImport(ref mask, Path.Combine(outputPath, materialName + "_Mask.png"), MapType.Linear);
 
             // Create material
-            var material = CreateMaterial(albedo, normal, height, mask, shader);
+            var material = CreateMaterial(albedo, normal, height, mask, shader, properties);
             AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
         }
 
@@ -158,25 +159,40 @@ namespace z3lx.ACGImporter.Editor
             return texture;
         }
 
-        private static readonly int BaseColorMapProp = Shader.PropertyToID("_BaseColorMap");
-        private static readonly int NormalMapProp = Shader.PropertyToID("_NormalMap");
-        private static readonly int HeightMapProp = Shader.PropertyToID("_HeightMap");
-        private static readonly int MaskMapProp = Shader.PropertyToID("_MaskMap");
-        private static readonly int DisplacementModeProp = Shader.PropertyToID("_DisplacementMode");
-        private static readonly int HeightPoMAmplitudeProp = Shader.PropertyToID("_HeightPoMAmplitude");
-        private static Material CreateMaterial(Texture albedo, Texture normal, Texture height, Texture mask, Shader shader)
+        private static Material CreateMaterial(Texture albedo, Texture normal, Texture height, Texture mask,
+            Shader shader, IEnumerable<ShaderProperty> properties)
         {
             var material = new Material(shader);
-            material.SetTexture(BaseColorMapProp, albedo);
-            material.SetTexture(NormalMapProp, normal);
-            material.SetTexture(HeightMapProp, height);
-            material.SetTexture(MaskMapProp, mask);
-            if (height)
+            foreach (var property in properties)
             {
-                material.SetInt(DisplacementModeProp, 2);
-                material.SetFloat(HeightPoMAmplitudeProp, 1);
+                var propertyId = Shader.PropertyToID(property.name);
+                switch (property.type)
+                {
+                    case ShaderProperty.Type.Texture:
+                        switch (property.value)
+                        {
+                            case "color":
+                                material.SetTexture(propertyId, albedo);
+                                break;
+                            case "normal":
+                                material.SetTexture(propertyId, normal);
+                                break;
+                            case "height":
+                                material.SetTexture(propertyId, height);
+                                break;
+                            case "mask":
+                                material.SetTexture(propertyId, mask);
+                                break;
+                        }
+                        break;
+                    case ShaderProperty.Type.Float:
+                        material.SetFloat(propertyId, float.Parse(property.value));
+                        break;
+                    case ShaderProperty.Type.Int:
+                        material.SetInt(propertyId, int.Parse(property.value));
+                        break;
+                }
             }
-
             return material;
         }
     }
