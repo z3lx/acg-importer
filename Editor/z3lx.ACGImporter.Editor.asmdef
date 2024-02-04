@@ -1,0 +1,16 @@
+{
+    "name": "z3lx.ACGImporter.Editor",
+    "rootNamespace": "z3lx.ACGImporter.Editor",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
