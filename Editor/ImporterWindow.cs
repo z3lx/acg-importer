@@ -35,43 +35,8 @@ namespace z3lx.ACGImporter.Editor
 
             _reorderableList = new ReorderableList(_shaderProperties, typeof(string), true, true, true, true)
             {
-                drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Shader Properties"),
-                drawElementCallback = (rect, index, active, focused) =>
-                {
-                    const int padding = 4;
-                    const int typeWidth = 96;
-                    const int valueWidth = 96;
-
-                    rect.y += (rect.height - EditorGUIUtility.singleLineHeight) / 2;
-                    var element = _shaderProperties[index];
-                    element.type = (ShaderProperty.Type)EditorGUI.EnumPopup(
-                        new Rect(
-                            rect.x,
-                            rect.y,
-                            typeWidth,
-                            EditorGUIUtility.singleLineHeight
-                        ),
-                        element.type
-                    );
-                    element.name = EditorGUI.TextField(
-                        new Rect(
-                            rect.x + typeWidth + padding,
-                            rect.y,
-                            rect.width - typeWidth - valueWidth - 2 * padding,
-                            EditorGUIUtility.singleLineHeight
-                        ),
-                        element.name
-                    );
-                    element.value = EditorGUI.TextField(
-                        new Rect(
-                            rect.x + rect.width - valueWidth,
-                            rect.y,
-                            valueWidth,
-                            EditorGUIUtility.singleLineHeight
-                        ),
-                        element.value
-                    );
-                }
+                drawHeaderCallback = DrawHeaderCallback,
+                drawElementCallback = DrawElementCallback
             };
         }
 
@@ -101,6 +66,48 @@ namespace z3lx.ACGImporter.Editor
             return getActiveFolderPath == null
                 ? "Assets"
                 : getActiveFolderPath.Invoke(null, Array.Empty<object>()).ToString();
+        }
+
+        private void DrawHeaderCallback(Rect rect)
+        {
+            EditorGUI.LabelField(rect, "Shader Properties");
+        }
+
+        private void DrawElementCallback(Rect rect, int index, bool active, bool focused)
+        {
+            const int padding = 4;
+            const int typeWidth = 96;
+            const int valueWidth = 96;
+
+            rect.y += (rect.height - EditorGUIUtility.singleLineHeight) / 2;
+            var element = _shaderProperties[index];
+            element.type = (ShaderProperty.Type)EditorGUI.EnumPopup(
+                new Rect(
+                    rect.x,
+                    rect.y,
+                    typeWidth,
+                    EditorGUIUtility.singleLineHeight
+                ),
+                element.type
+            );
+            element.name = EditorGUI.TextField(
+                new Rect(
+                    rect.x + typeWidth + padding,
+                    rect.y,
+                    rect.width - typeWidth - valueWidth - 2 * padding,
+                    EditorGUIUtility.singleLineHeight
+                ),
+                element.name
+            );
+            element.value = EditorGUI.TextField(
+                new Rect(
+                    rect.x + rect.width - valueWidth,
+                    rect.y,
+                    valueWidth,
+                    EditorGUIUtility.singleLineHeight
+                ),
+                element.value
+            );
         }
     }
 }

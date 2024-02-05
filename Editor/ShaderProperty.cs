@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace z3lx.ACGImporter.Editor
 {
     public class ShaderProperty
