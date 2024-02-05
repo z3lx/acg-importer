@@ -41,8 +41,11 @@ namespace z3lx.ACGImporter.Editor
             };
         }
 
+        private Vector2 _scrollPosition;
         private void OnGUI()
         {
+            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
+
             EditorGUILayout.LabelField("Path settings", EditorStyles.boldLabel);
             _inputPath = EditorGUILayout.TextField("Input Path", _inputPath);
             _outputPath = EditorGUILayout.TextField("Output Path", _outputPath);
@@ -53,11 +56,15 @@ namespace z3lx.ACGImporter.Editor
             _shader = (Shader)EditorGUILayout.ObjectField("Shader", _shader, typeof(Shader), false);
             _reorderableList.DoLayoutList();
 
-            if (!GUILayout.Button("Import materials")) return;
-            if (!Directory.Exists(_inputPath)) return;
-            var inputPaths = Directory.GetDirectories(_inputPath);
-            foreach (var path in inputPaths)
-                Importer.Import(path, _outputPath, _shader, _shaderProperties.ToArray());
+            if (GUILayout.Button("Import materials"))
+            {
+                if (!Directory.Exists(_inputPath)) return;
+                var inputPaths = Directory.GetDirectories(_inputPath);
+                foreach (var path in inputPaths)
+                    Importer.Import(path, _outputPath, _shader, _shaderProperties.ToArray());
+            }
+
+            EditorGUILayout.EndScrollView();
         }
 
         private static string GetActiveFolderPath()
