@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using Object = UnityEngine.Object;
 
 namespace z3lx.ACGImporter.Editor
 {
@@ -10,74 +12,117 @@ namespace z3lx.ACGImporter.Editor
     {
         public static void Import(string inputPath, string outputPath, Shader shader, ShaderProperty[] properties)
         {
-            Texture2D albedo = null;
-            Texture2D normal = null;
-            Texture2D metallic = null;
-            Texture2D roughness = null;
-            Texture2D occlusion = null;
-            Texture2D height = null;
-
             inputPath = inputPath.TrimEnd(Path.DirectorySeparatorChar);
             var materialName = Path.GetFileName(inputPath);
 
-            // Read textures
+            // Create textures
+            InitializeMaps(out var maps);
+            ResolveMaps(ref maps, properties);
+            if (!ReadMaps(ref maps, inputPath))
+                return;
+            WriteAndImportMaps(maps, outputPath, materialName);
+
+            // Create material
+            var material = CreateMaterial(maps, shader, properties);
+            AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
+        }
+
+        private static void InitializeMaps(out Dictionary<MapType, Texture2D> maps)
+        {
+            maps = new Dictionary<MapType, Texture2D>();
+        }
+
+        private static void ResolveMaps(ref Dictionary<MapType, Texture2D> maps, IEnumerable<ShaderProperty> properties)
+        {
+            foreach (var prop in properties)
+            {
+                if (prop.Type != typeof(MapType))
+                    continue;
+                switch ((MapType)prop.Value)
+                {
+                    case MapType.Color:
+                        maps[MapType.Color] = null;
+                        break;
+                    case MapType.Normal:
+                        maps[MapType.Normal] = null;
+                        break;
+                    case MapType.Metallic:
+                        maps[MapType.Metallic] = null;
+                        break;
+                    case MapType.Roughness:
+                        maps[MapType.Roughness] = null;
+                        break;
+                    case MapType.Occlusion:
+                        maps[MapType.Occlusion] = null;
+                        break;
+                    case MapType.Height:
+                        maps[MapType.Height] = null;
+                        break;
+                    case MapType.Smoothness:
+                        maps[MapType.Smoothness] = null;
+                        maps[MapType.Roughness] = null;
+                        break;
+                    case MapType.Mask:
+                        maps[MapType.Mask] = null;
+                        maps[MapType.Color] = null;
+                        maps[MapType.Metallic] = null;
+                        maps[MapType.Occlusion] = null;
+                        maps[MapType.Roughness] = null;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        private static bool ReadMaps(ref Dictionary<MapType, Texture2D> maps, string inputPath)
+        {
+            var mapTypes = new Dictionary<string, MapType>
+            {
+                {"Color", MapType.Color},
+                {"NormalGL", MapType.Normal},
+                {"Metalness", MapType.Metallic},
+                {"Roughness", MapType.Roughness},
+                {"AmbientOcclusion", MapType.Occlusion},
+                {"Displacement", MapType.Height}
+            };
+
             var files = Directory.EnumerateFiles(inputPath);
             foreach (var file in files)
             {
                 var fileName = Path.GetFileNameWithoutExtension(file);
                 var suffix = fileName.Split('_')[^1];
-
-                switch (suffix)
-                {
-                    case "Color":
-                        albedo = Read(file, true);
-                        break;
-                    case "NormalGL":
-                        normal = Read(file);
-                        break;
-                    case "Metalness":
-                        metallic = Read(file);
-                        break;
-                    case "Roughness":
-                        roughness = Read(file);
-                        break;
-                    case "AmbientOcclusion":
-                        occlusion = Read(file);
-                        break;
-                    case "Displacement":
-                        height = Read(file);
-                        break;
-                }
+                if (mapTypes.TryGetValue(suffix, out var mapType) && maps.ContainsKey(mapType))
+                    maps[mapType] = Read(file, mapType == MapType.Color);
             }
 
-            if (!albedo)
+            if (maps.ContainsKey(MapType.Color) &&
+                maps[MapType.Color] == null)
             {
-                Debug.LogError($"Albedo texture not found for {materialName}.");
-                return;
+                Debug.LogError($"Color map not found at {inputPath}.");
+                return false;
             }
 
-            // Create mask map
-            var mask = CreateMaskMap(albedo, metallic, occlusion, roughness);
-            Object.DestroyImmediate(metallic);
-            Object.DestroyImmediate(occlusion);
-            Object.DestroyImmediate(roughness);
-
-            // Write and import textures
-            WriteAndImport(ref albedo, Path.Combine(outputPath, materialName + "_Albedo.png"), MapType.Color);
-            WriteAndImport(ref normal, Path.Combine(outputPath, materialName + "_Normal.png"), MapType.Normal);
-            WriteAndImport(ref height, Path.Combine(outputPath, materialName + "_Height.png"), MapType.Linear);
-            WriteAndImport(ref mask, Path.Combine(outputPath, materialName + "_Mask.png"), MapType.Linear);
-
-            // Create material
-            var material = CreateMaterial(albedo, normal, height, mask, shader, properties);
-            AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
+            if (maps.ContainsKey(MapType.Mask))
+                maps[MapType.Mask] = CreateMaskMap(maps);
+            return true;
         }
 
-        private enum MapType
+        private static void WriteAndImportMaps(
+            Dictionary<MapType, Texture2D> maps, string outputPath, string materialName)
         {
-            Color,
-            Linear,
-            Normal
+            var mapTypes = (MapType[])Enum.GetValues(typeof(MapType));
+            foreach (var mapType in mapTypes)
+            {
+                if (!maps.ContainsKey(mapType) ||
+                    maps[mapType] == null)
+                    continue;
+                var filePath = Path.Combine(outputPath, $"{materialName}_{mapType}.png");
+                Write(maps[mapType], filePath);
+                Import(filePath, mapType);
+                Object.DestroyImmediate(maps[mapType]);
+                maps[mapType] = AssetDatabase.LoadAssetAtPath<Texture2D>(filePath);
+            }
         }
 
         private static Texture2D Read(string filePath, bool sRGB = false)
@@ -103,36 +148,31 @@ namespace z3lx.ACGImporter.Editor
         {
             AssetDatabase.ImportAsset(filePath, ImportAssetOptions.ForceUpdate);
             var importer = (TextureImporter)AssetImporter.GetAtPath(filePath);
-            importer.textureType = type == MapType.Normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            importer.textureType = type == MapType.Normal
+                ? TextureImporterType.NormalMap
+                : TextureImporterType.Default;
             importer.sRGBTexture = type == MapType.Color;
             importer.SaveAndReimport();
-        }
-
-        private static void WriteAndImport(ref Texture2D source, string filePath, MapType type)
-        {
-            if (!source)
-                return;
-            Write(source, filePath);
-            Import(filePath, type);
-            Object.DestroyImmediate(source);
-            source = AssetDatabase.LoadAssetAtPath<Texture2D>(filePath);
         }
 
         private static readonly Material MaskMapMat = new(Shader.Find("Hidden/MaskMap"));
         private static readonly int MetallicMapProp = Shader.PropertyToID("_MetallicMap");
         private static readonly int OcclusionMapProp = Shader.PropertyToID("_OcclusionMap");
         private static readonly int RoughnessMapProp = Shader.PropertyToID("_RoughnessMap");
-        private static Texture2D CreateMaskMap(Texture albedo, Texture metallic, Texture occlusion, Texture roughness)
+        private static Texture2D CreateMaskMap(Dictionary<MapType, Texture2D> maps)
         {
+            if (maps[MapType.Color] == null)
+                return null;
+            var colorMap = maps[MapType.Color];
             var rd = RenderTexture.GetTemporary(
-                albedo.width,
-                albedo.height,
+                colorMap.width,
+                colorMap.height,
                 0,
                 GraphicsFormat.R8G8B8A8_UNorm
             );
-            MaskMapMat.SetTexture(MetallicMapProp, metallic);
-            MaskMapMat.SetTexture(OcclusionMapProp, occlusion);
-            MaskMapMat.SetTexture(RoughnessMapProp, roughness);
+            MaskMapMat.SetTexture(MetallicMapProp, maps[MapType.Metallic]);
+            MaskMapMat.SetTexture(OcclusionMapProp, maps[MapType.Occlusion]);
+            MaskMapMat.SetTexture(RoughnessMapProp, maps[MapType.Roughness]);
             Graphics.Blit(null, rd, MaskMapMat);
             var mask = RenderToTexture(rd);
             RenderTexture.ReleaseTemporary(rd);
@@ -149,47 +189,30 @@ namespace z3lx.ACGImporter.Editor
             );
             var oldActive = RenderTexture.active;
             RenderTexture.active = renderTexture;
-            texture.ReadPixels(
-                new Rect(0, 0, renderTexture.width, renderTexture.height),
-                0,
-                0
-            );
+            texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
             texture.Apply();
             RenderTexture.active = oldActive;
             return texture;
         }
 
-        private static Material CreateMaterial(Texture albedo, Texture normal, Texture height, Texture mask,
+        private static Material CreateMaterial(
+            Dictionary<MapType, Texture2D> maps,
             Shader shader, IEnumerable<ShaderProperty> properties)
         {
             var material = new Material(shader);
             foreach (var property in properties)
             {
-                var propertyId = Shader.PropertyToID(property.name);
-                switch (property.type)
+                var propertyId = Shader.PropertyToID(property.Name);
+                switch (property.Type)
                 {
-                    case ShaderProperty.PropertyType.Texture:
-                        switch (property.value)
-                        {
-                            case "color":
-                                material.SetTexture(propertyId, albedo);
-                                break;
-                            case "normal":
-                                material.SetTexture(propertyId, normal);
-                                break;
-                            case "height":
-                                material.SetTexture(propertyId, height);
-                                break;
-                            case "mask":
-                                material.SetTexture(propertyId, mask);
-                                break;
-                        }
+                    case { } t when t == typeof(MapType):
+                        material.SetTexture(propertyId, maps[(MapType)property.Value]);
                         break;
-                    case ShaderProperty.PropertyType.Float:
-                        material.SetFloat(propertyId, float.Parse(property.value));
+                    case { } t when t == typeof(float):
+                        material.SetFloat(propertyId, (float)property.Value);
                         break;
-                    case ShaderProperty.PropertyType.Int:
-                        material.SetInt(propertyId, int.Parse(property.value));
+                    case { } t when t == typeof(int):
+                        material.SetInt(propertyId, (int)property.Value);
                         break;
                 }
             }

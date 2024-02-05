@@ -1,23 +1,52 @@
+using System;
+
 namespace z3lx.ACGImporter.Editor
 {
     public class ShaderProperty
     {
-        public enum PropertyType
+        private Type _type;
+        private string _name;
+        private object _value;
+
+        public Type Type
         {
-            Texture,
-            Float,
-            Int
+            get => _type;
+            set
+            {
+                if (_type == value)
+                    return;
+                _type = value;
+                _value = Activator.CreateInstance(value);
+            }
         }
 
-        public ShaderProperty(PropertyType type, string name, string value)
+        public string Name
         {
-            this.type = type;
-            this.name = name;
-            this.value = value;
+            get => _name;
+            set => _name = value;
         }
 
-        public PropertyType type;
-        public string name;
-        public string value;
+        public object Value
+        {
+            get => _value;
+            set
+            {
+                if (_value == value)
+                    return;
+                _value = value;
+                _type = value.GetType();
+            }
+        }
+
+        public ShaderProperty()
+        {
+            Type = typeof(MapType);
+        }
+
+        public ShaderProperty(string name, object value)
+        {
+            Name = name;
+            Value = value;
+        }
     }
 }

@@ -19,12 +19,12 @@ namespace z3lx.ACGImporter.Editor
         private Shader _shader;
         private readonly List<ShaderProperty> _shaderProperties = new()
         {
-            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_BaseColorMap", "color"),
-            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_NormalMap", "normal"),
-            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_MaskMap", "mask"),
-            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_HeightMap", "height"),
-            new ShaderProperty(ShaderProperty.PropertyType.Int, "_DisplacementMode", "2"),
-            new ShaderProperty(ShaderProperty.PropertyType.Float, "_HeightPoMAmplitude", "1"),
+            new ShaderProperty("_BaseColorMap", MapType.Color),
+            new ShaderProperty("_NormalMap", MapType.Normal),
+            new ShaderProperty("_MaskMap", MapType.Mask),
+            new ShaderProperty("_HeightMap", MapType.Height),
+            new ShaderProperty("_DisplacementMode", 2),
+            new ShaderProperty("_HeightPoMAmplitude", 1f)
         };
         private ReorderableList _reorderableList;
 
@@ -78,16 +78,57 @@ namespace z3lx.ACGImporter.Editor
         {
             rect.height = EditorGUIUtility.singleLineHeight;
             rect.y += EditorGUIUtility.standardVerticalSpacing;
+            var lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             var element = _shaderProperties[index];
-            var label = string.IsNullOrEmpty(element.name) ? "New Shader Property" : element.name;
+
+            // Draw label
+            var label = string.IsNullOrEmpty(element.Name) ? "New Shader Property" : element.Name;
             EditorGUI.LabelField(rect, label, EditorStyles.boldLabel);
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            element.type = (ShaderProperty.PropertyType)EditorGUI.EnumPopup(rect, "Type", element.type);
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            element.name = EditorGUI.TextField(rect, "Name", element.name);
-            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            element.value = EditorGUI.TextField(rect, "Value", element.value);
+            rect.y += lineHeight;
+
+            // Draw type popup
+            var options = new[] {"Texture", "Float", "Int"};
+            var choice = element.Type switch
+            {
+                { } t when t == typeof(MapType) => 0,
+                { } t when t == typeof(float) => 1,
+                { } t when t == typeof(int) => 2,
+                _ => 0
+            };
+            choice = EditorGUI.Popup(rect, "Type", choice, options);
+            element.Type = choice switch
+            {
+                0 => typeof(MapType),
+                1 => typeof(float),
+                2 => typeof(int),
+                _ => element.Type
+            };
+            rect.y += lineHeight;
+
+            // Draw name field
+            element.Name = EditorGUI.TextField(rect, "Name", element.Name);
+            rect.y += lineHeight;
+
+            // Draw value field
+            if (element.Type == typeof(MapType))
+            {
+                var value = (MapType)element.Value;
+                value = (MapType)EditorGUI.EnumPopup(rect, "Value", value);
+                element.Value = value;
+            }
+            else if (element.Type == typeof(float))
+            {
+                var value = (float)element.Value;
+                value = EditorGUI.FloatField(rect, "Value", value);
+                element.Value = value;
+            }
+            else if (element.Type == typeof(int))
+            {
+                var value = (int)element.Value;
+                value = EditorGUI.IntField(rect, "Value", value);
+                element.Value = value;
+            }
         }
     }
 }
