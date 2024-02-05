@@ -19,12 +19,12 @@ namespace z3lx.ACGImporter.Editor
         private Shader _shader;
         private readonly List<ShaderProperty> _shaderProperties = new()
         {
-            new ShaderProperty(ShaderProperty.Type.Texture, "_BaseColorMap", "color"),
-            new ShaderProperty(ShaderProperty.Type.Texture, "_NormalMap", "normal"),
-            new ShaderProperty(ShaderProperty.Type.Texture, "_MaskMap", "mask"),
-            new ShaderProperty(ShaderProperty.Type.Texture, "_HeightMap", "height"),
-            new ShaderProperty(ShaderProperty.Type.Int, "_DisplacementMode", "2"),
-            new ShaderProperty(ShaderProperty.Type.Float, "_HeightPoMAmplitude", "1"),
+            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_BaseColorMap", "color"),
+            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_NormalMap", "normal"),
+            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_MaskMap", "mask"),
+            new ShaderProperty(ShaderProperty.PropertyType.Texture, "_HeightMap", "height"),
+            new ShaderProperty(ShaderProperty.PropertyType.Int, "_DisplacementMode", "2"),
+            new ShaderProperty(ShaderProperty.PropertyType.Float, "_HeightPoMAmplitude", "1"),
         };
         private ReorderableList _reorderableList;
 
@@ -36,7 +36,8 @@ namespace z3lx.ACGImporter.Editor
             _reorderableList = new ReorderableList(_shaderProperties, typeof(string), true, true, true, true)
             {
                 drawHeaderCallback = DrawHeaderCallback,
-                drawElementCallback = DrawElementCallback
+                drawElementCallback = DrawElementCallback,
+                elementHeight = 4 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing)
             };
         }
 
@@ -75,39 +76,18 @@ namespace z3lx.ACGImporter.Editor
 
         private void DrawElementCallback(Rect rect, int index, bool active, bool focused)
         {
-            const int padding = 4;
-            const int typeWidth = 96;
-            const int valueWidth = 96;
+            rect.height = EditorGUIUtility.singleLineHeight;
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
 
-            rect.y += (rect.height - EditorGUIUtility.singleLineHeight) / 2;
             var element = _shaderProperties[index];
-            element.type = (ShaderProperty.Type)EditorGUI.EnumPopup(
-                new Rect(
-                    rect.x,
-                    rect.y,
-                    typeWidth,
-                    EditorGUIUtility.singleLineHeight
-                ),
-                element.type
-            );
-            element.name = EditorGUI.TextField(
-                new Rect(
-                    rect.x + typeWidth + padding,
-                    rect.y,
-                    rect.width - typeWidth - valueWidth - 2 * padding,
-                    EditorGUIUtility.singleLineHeight
-                ),
-                element.name
-            );
-            element.value = EditorGUI.TextField(
-                new Rect(
-                    rect.x + rect.width - valueWidth,
-                    rect.y,
-                    valueWidth,
-                    EditorGUIUtility.singleLineHeight
-                ),
-                element.value
-            );
+            var label = string.IsNullOrEmpty(element.name) ? "New Shader Property" : element.name;
+            EditorGUI.LabelField(rect, label, EditorStyles.boldLabel);
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            element.type = (ShaderProperty.PropertyType)EditorGUI.EnumPopup(rect, "Type", element.type);
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            element.name = EditorGUI.TextField(rect, "Name", element.name);
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            element.value = EditorGUI.TextField(rect, "Value", element.value);
         }
     }
 }

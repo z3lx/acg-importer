@@ -168,7 +168,7 @@ namespace z3lx.ACGImporter.Editor
                 var propertyId = Shader.PropertyToID(property.name);
                 switch (property.type)
                 {
-                    case ShaderProperty.Type.Texture:
+                    case ShaderProperty.PropertyType.Texture:
                         switch (property.value)
                         {
                             case "color":
@@ -185,10 +185,10 @@ namespace z3lx.ACGImporter.Editor
                                 break;
                         }
                         break;
-                    case ShaderProperty.Type.Float:
+                    case ShaderProperty.PropertyType.Float:
                         material.SetFloat(propertyId, float.Parse(property.value));
                         break;
-                    case ShaderProperty.Type.Int:
+                    case ShaderProperty.PropertyType.Int:
                         material.SetInt(propertyId, int.Parse(property.value));
                         break;
                 }
