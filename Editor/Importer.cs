@@ -105,7 +105,7 @@ namespace z3lx.ACGImporter.Editor
             }
 
             if (maps.ContainsKey(MapType.Mask))
-                maps[MapType.Mask] = CreateMaskMap(maps);
+                maps[MapType.Mask] = MapCreator.CreateMaskMap(maps);
             return true;
         }
 
@@ -158,46 +158,6 @@ namespace z3lx.ACGImporter.Editor
                 : TextureImporterType.Default;
             importer.sRGBTexture = type == MapType.Color;
             importer.SaveAndReimport();
-        }
-
-        private static readonly Material MaskMapMat = new(Shader.Find("Hidden/MaskMap"));
-        private static readonly int MetallicMapProp = Shader.PropertyToID("_MetallicMap");
-        private static readonly int OcclusionMapProp = Shader.PropertyToID("_OcclusionMap");
-        private static readonly int RoughnessMapProp = Shader.PropertyToID("_RoughnessMap");
-        private static Texture2D CreateMaskMap(Dictionary<MapType, Texture2D> maps)
-        {
-            if (maps[MapType.Color] == null)
-                return null;
-            var colorMap = maps[MapType.Color];
-            var rd = RenderTexture.GetTemporary(
-                colorMap.width,
-                colorMap.height,
-                0,
-                GraphicsFormat.R8G8B8A8_UNorm
-            );
-            MaskMapMat.SetTexture(MetallicMapProp, maps[MapType.Metallic]);
-            MaskMapMat.SetTexture(OcclusionMapProp, maps[MapType.Occlusion]);
-            MaskMapMat.SetTexture(RoughnessMapProp, maps[MapType.Roughness]);
-            Graphics.Blit(null, rd, MaskMapMat);
-            var mask = RenderToTexture(rd);
-            RenderTexture.ReleaseTemporary(rd);
-            return mask;
-        }
-
-        private static Texture2D RenderToTexture(RenderTexture renderTexture)
-        {
-            var texture = new Texture2D(
-                renderTexture.width,
-                renderTexture.height,
-                GraphicsFormatUtility.GetGraphicsFormat(renderTexture.format, renderTexture.sRGB),
-                TextureCreationFlags.None
-            );
-            var oldActive = RenderTexture.active;
-            RenderTexture.active = renderTexture;
-            texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-            texture.Apply();
-            RenderTexture.active = oldActive;
-            return texture;
         }
 
         private static Material CreateMaterial(
