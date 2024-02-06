@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -20,7 +21,7 @@ namespace z3lx.ACGImporter.Editor
             ResolveMaps(ref maps, properties);
             if (!ReadMaps(ref maps, inputPath))
                 return;
-            WriteAndImportMaps(maps, outputPath, materialName);
+            WriteAndImportMaps(maps, outputPath, materialName, properties);
 
             // Create material
             var material = CreateMaterial(maps, shader, properties);
@@ -109,9 +110,12 @@ namespace z3lx.ACGImporter.Editor
         }
 
         private static void WriteAndImportMaps(
-            Dictionary<MapType, Texture2D> maps, string outputPath, string materialName)
+            IDictionary<MapType, Texture2D> maps, string outputPath, string materialName, ShaderProperty[] properties)
         {
-            var mapTypes = (MapType[])Enum.GetValues(typeof(MapType));
+            var mapTypes = properties
+                .Where(property => property.Type == typeof(MapType))
+                .Select(property => (MapType)property.Value)
+                .ToList();
             foreach (var mapType in mapTypes)
             {
                 if (!maps.ContainsKey(mapType) ||
