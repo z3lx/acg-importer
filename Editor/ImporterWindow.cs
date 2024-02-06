@@ -56,9 +56,9 @@ namespace z3lx.ACGImporter.Editor
             _shader = (Shader)EditorGUILayout.ObjectField("Shader", _shader, typeof(Shader), false);
             _reorderableList.DoLayoutList();
 
-            if (GUILayout.Button("Import materials"))
+            if (GUILayout.Button("Import materials") &&
+                Directory.Exists(_inputPath))
             {
-                if (!Directory.Exists(_inputPath)) return;
                 var inputPaths = Directory.GetDirectories(_inputPath);
                 foreach (var path in inputPaths)
                     Importer.Import(path, _outputPath, _shader, _shaderProperties.ToArray());
