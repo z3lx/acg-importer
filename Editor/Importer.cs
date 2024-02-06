@@ -115,6 +115,7 @@ namespace z3lx.ACGImporter.Editor
             var mapTypes = properties
                 .Where(property => property.Type == typeof(MapType))
                 .Select(property => (MapType)property.Value)
+                .Distinct()
                 .ToList();
             foreach (var mapType in mapTypes)
             {
