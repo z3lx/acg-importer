@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace z3lx.ACGImporter.Editor
 {
@@ -6,6 +7,7 @@ namespace z3lx.ACGImporter.Editor
     {
         private Type _type;
         private string _name;
+        private int _id;
         private object _value;
 
         public Type Type
@@ -23,8 +25,16 @@ namespace z3lx.ACGImporter.Editor
         public string Name
         {
             get => _name;
-            set => _name = value;
+            set
+            {
+                if (_name == value)
+                    return;
+                _name = value;
+                _id = Shader.PropertyToID(value);
+            }
         }
+
+        public int Id => _id;
 
         public object Value
         {

@@ -207,17 +207,16 @@ namespace z3lx.ACGImporter.Editor
             var material = new Material(shader);
             foreach (var property in properties)
             {
-                var propertyId = Shader.PropertyToID(property.Name);
                 switch (property.Type)
                 {
                     case { } t when t == typeof(MapType):
-                        material.SetTexture(propertyId, maps[(MapType)property.Value]);
+                        material.SetTexture(property.Id, maps[(MapType)property.Value]);
                         break;
                     case { } t when t == typeof(float):
-                        material.SetFloat(propertyId, (float)property.Value);
+                        material.SetFloat(property.Id, (float)property.Value);
                         break;
                     case { } t when t == typeof(int):
-                        material.SetInt(propertyId, (int)property.Value);
+                        material.SetInt(property.Id, (int)property.Value);
                         break;
                 }
             }
