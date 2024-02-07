@@ -95,13 +95,14 @@ namespace z3lx.ACGImporter.Editor
             rect.y += lineHeight;
 
             // Draw type popup
-            var options = new[] {"Int", "Float", "Vector4", "Texture2D"};
+            var options = new[] {"Int", "Float", "Vector4", "Color", "Texture2D"};
             var choice = element.Type switch
             {
                 { } t when t == typeof(int) => 0,
                 { } t when t == typeof(float) => 1,
                 { } t when t == typeof(Vector4) => 2,
-                { } t when t == typeof(MapType) => 3,
+                { } t when t == typeof(Color) => 3,
+                { } t when t == typeof(MapType) => 4,
                 _ => 0
             };
             choice = EditorGUI.Popup(rect, "Type", choice, options);
@@ -110,7 +111,8 @@ namespace z3lx.ACGImporter.Editor
                 0 => typeof(int),
                 1 => typeof(float),
                 2 => typeof(Vector4),
-                3 => typeof(MapType),
+                3 => typeof(Color),
+                4 => typeof(MapType),
                 _ => element.Type
             };
             rect.y += lineHeight;
@@ -139,6 +141,12 @@ namespace z3lx.ACGImporter.Editor
                 rect.width -= EditorGUIUtility.labelWidth;
                 var value = (Vector4)element.Value;
                 value = EditorGUI.Vector4Field(rect, "", value);
+                element.Value = value;
+            }
+            else if (element.Type == typeof(Color))
+            {
+                var value = (Color)element.Value;
+                value = EditorGUI.ColorField(rect, "Value", value);
                 element.Value = value;
             }
             else if (element.Type == typeof(MapType))

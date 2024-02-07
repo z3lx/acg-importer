@@ -187,6 +187,9 @@ namespace z3lx.ACGImporter.Editor
                     case { } t when t == typeof(Vector4):
                         material.SetVector(property.Id, (Vector4)property.Value);
                         break;
+                    case { } t when t == typeof(Color):
+                        material.SetColor(property.Id, (Color)property.Value);
+                        break;
                     case { } t when t == typeof(MapType):
                         material.SetTexture(property.Id, maps[(MapType)property.Value]);
                         break;
