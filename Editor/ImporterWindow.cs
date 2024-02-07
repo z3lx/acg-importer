@@ -26,14 +26,13 @@ namespace z3lx.ACGImporter.Editor
             new ShaderProperty("_DisplacementMode", 2),
             new ShaderProperty("_HeightPoMAmplitude", 1f)
         };
-        private ReorderableList _reorderableList;
 
         private void OnEnable()
         {
             if (!_shader)
                 _shader = Shader.Find("HDRP/Lit");
 
-            _reorderableList = new ReorderableList(_shaderProperties, typeof(string), true, true, true, true)
+            _shaderPropertiesList = new ReorderableList(_shaderProperties, typeof(string), true, true, true, true)
             {
                 drawHeaderCallback = DrawHeaderCallback,
                 drawElementCallback = DrawElementCallback,
@@ -42,19 +41,35 @@ namespace z3lx.ACGImporter.Editor
         }
 
         private Vector2 _scrollPosition;
+        private bool _showPathSettings = true;
+        private bool _showMaterialSettings = true;
+        private ReorderableList _shaderPropertiesList;
+
         private void OnGUI()
         {
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
-            EditorGUILayout.LabelField("Path settings", EditorStyles.boldLabel);
-            _inputPath = EditorGUILayout.TextField("Input Path", _inputPath);
-            _outputPath = EditorGUILayout.TextField("Output Path", _outputPath);
+            _showPathSettings = EditorGUILayout.Foldout(
+                _showPathSettings, "Path settings", true, EditorStyles.foldoutHeader);
+            if (_showPathSettings)
+            {
+                EditorGUI.indentLevel++;
+                _inputPath = EditorGUILayout.TextField("Input Path", _inputPath);
+                _outputPath = EditorGUILayout.TextField("Output Path", _outputPath);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+            }
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Material settings", EditorStyles.boldLabel);
-
-            _shader = (Shader)EditorGUILayout.ObjectField("Shader", _shader, typeof(Shader), false);
-            _reorderableList.DoLayoutList();
+            _showMaterialSettings = EditorGUILayout.Foldout(
+                _showMaterialSettings, "Material settings", true, EditorStyles.foldoutHeader);
+            if (_showMaterialSettings)
+            {
+                EditorGUI.indentLevel++;
+                _shader = (Shader)EditorGUILayout.ObjectField("Shader", _shader, typeof(Shader), false);
+                _shaderPropertiesList.DoLayoutList();
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+            }
 
             if (GUILayout.Button("Import materials") &&
                 Directory.Exists(_inputPath))
