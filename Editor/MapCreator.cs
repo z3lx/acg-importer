@@ -80,13 +80,21 @@ namespace z3lx.ACGImporter.Editor
             SwizzleMat.SetTexture(Texture1, maps[MapType.Metallic]);
             SwizzleMat.SetTexture(Texture2, maps[MapType.Occlusion]);
             SwizzleMat.SetTexture(Texture4, maps[MapType.Roughness]);
-
-            SwizzleMat.SetVector(Swizzle1, new Vector4(1, 0, 0, 0));
-            SwizzleMat.SetVector(Swizzle2, new Vector4(1, 0, 0, 0));
             SwizzleMat.SetVector(Swizzle4, new Vector4(1, 0, 0, 0));
+            SwizzleMat.SetFloat(Flip4, 1);
 
-            SwizzleMat.SetFloat(Flip1, 0);
-            SwizzleMat.SetFloat(Flip2, 0);
+            return Render(maps);
+        }
+
+        public static Texture2D CreateMetallicSmoothnessMap(Dictionary<MapType, Texture2D> maps)
+        {
+            ResetMaterial();
+
+            SwizzleMat.SetTexture(Texture1, maps[MapType.Metallic]);
+            SwizzleMat.SetTexture(Texture2, maps[MapType.Metallic]);
+            SwizzleMat.SetTexture(Texture3, maps[MapType.Metallic]);
+            SwizzleMat.SetTexture(Texture4, maps[MapType.Roughness]);
+            SwizzleMat.SetVector(Swizzle4, new Vector4(1, 0, 0, 0));
             SwizzleMat.SetFloat(Flip4, 1);
 
             return Render(maps);
