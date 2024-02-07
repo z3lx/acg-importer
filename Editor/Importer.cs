@@ -166,6 +166,7 @@ namespace z3lx.ACGImporter.Editor
                 ? TextureImporterType.NormalMap
                 : TextureImporterType.Default;
             importer.sRGBTexture = type == MapType.Color;
+            importer.alphaIsTransparency = type == MapType.Color;
             importer.SaveAndReimport();
         }
 
