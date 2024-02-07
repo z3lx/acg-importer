@@ -59,6 +59,10 @@ namespace z3lx.ACGImporter.Editor
                     case MapType.Height:
                         maps[MapType.Height] = null;
                         break;
+                    case MapType.Smoothness:
+                        maps[MapType.Smoothness] = null;
+                        maps[MapType.Roughness] = null;
+                        break;
                     case MapType.MetallicSmoothness:
                         maps[MapType.MetallicSmoothness] = null;
                         maps[MapType.Metallic] = null;
@@ -109,6 +113,8 @@ namespace z3lx.ACGImporter.Editor
                 maps[MapType.Mask] = MapCreator.CreateMaskMap(maps);
             if (maps.ContainsKey(MapType.MetallicSmoothness))
                 maps[MapType.MetallicSmoothness] = MapCreator.CreateMetallicSmoothnessMap(maps);
+            if (maps.ContainsKey(MapType.Smoothness))
+                maps[MapType.Smoothness] = MapCreator.CreateSmoothnessMap(maps);
             return true;
         }
 

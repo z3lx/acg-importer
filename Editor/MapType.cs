@@ -8,6 +8,7 @@
         Roughness,
         Occlusion,
         Height,
+        Smoothness,
         MetallicSmoothness,
         Mask
     }

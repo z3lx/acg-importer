@@ -86,6 +86,21 @@ namespace z3lx.ACGImporter.Editor
             return Render(maps);
         }
 
+        public static Texture2D CreateSmoothnessMap(Dictionary<MapType, Texture2D> maps)
+        {
+            ResetMaterial();
+
+            SwizzleMat.SetTexture(Texture1, maps[MapType.Roughness]);
+            SwizzleMat.SetTexture(Texture2, maps[MapType.Roughness]);
+            SwizzleMat.SetTexture(Texture3, maps[MapType.Roughness]);
+            SwizzleMat.SetTexture(Texture4, maps[MapType.Roughness]);
+            SwizzleMat.SetFloat(Flip1, 1);
+            SwizzleMat.SetFloat(Flip2, 1);
+            SwizzleMat.SetFloat(Flip3, 1);
+
+            return Render(maps);
+        }
+
         public static Texture2D CreateMetallicSmoothnessMap(Dictionary<MapType, Texture2D> maps)
         {
             ResetMaterial();
