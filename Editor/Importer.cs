@@ -178,14 +178,17 @@ namespace z3lx.ACGImporter.Editor
             {
                 switch (property.Type)
                 {
-                    case { } t when t == typeof(MapType):
-                        material.SetTexture(property.Id, maps[(MapType)property.Value]);
+                    case { } t when t == typeof(int):
+                        material.SetInt(property.Id, (int)property.Value);
                         break;
                     case { } t when t == typeof(float):
                         material.SetFloat(property.Id, (float)property.Value);
                         break;
-                    case { } t when t == typeof(int):
-                        material.SetInt(property.Id, (int)property.Value);
+                    case { } t when t == typeof(Vector4):
+                        material.SetVector(property.Id, (Vector4)property.Value);
+                        break;
+                    case { } t when t == typeof(MapType):
+                        material.SetTexture(property.Id, maps[(MapType)property.Value]);
                         break;
                 }
             }

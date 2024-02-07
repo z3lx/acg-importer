@@ -95,20 +95,22 @@ namespace z3lx.ACGImporter.Editor
             rect.y += lineHeight;
 
             // Draw type popup
-            var options = new[] {"Texture", "Float", "Int"};
+            var options = new[] {"Int", "Float", "Vector4", "Texture2D"};
             var choice = element.Type switch
             {
-                { } t when t == typeof(MapType) => 0,
+                { } t when t == typeof(int) => 0,
                 { } t when t == typeof(float) => 1,
-                { } t when t == typeof(int) => 2,
+                { } t when t == typeof(Vector4) => 2,
+                { } t when t == typeof(MapType) => 3,
                 _ => 0
             };
             choice = EditorGUI.Popup(rect, "Type", choice, options);
             element.Type = choice switch
             {
-                0 => typeof(MapType),
+                0 => typeof(int),
                 1 => typeof(float),
-                2 => typeof(int),
+                2 => typeof(Vector4),
+                3 => typeof(MapType),
                 _ => element.Type
             };
             rect.y += lineHeight;
@@ -118,10 +120,10 @@ namespace z3lx.ACGImporter.Editor
             rect.y += lineHeight;
 
             // Draw value field
-            if (element.Type == typeof(MapType))
+            if (element.Type == typeof(int))
             {
-                var value = (MapType)element.Value;
-                value = (MapType)EditorGUI.EnumPopup(rect, "Value", value);
+                var value = (int)element.Value;
+                value = EditorGUI.IntField(rect, "Value", value);
                 element.Value = value;
             }
             else if (element.Type == typeof(float))
@@ -130,10 +132,19 @@ namespace z3lx.ACGImporter.Editor
                 value = EditorGUI.FloatField(rect, "Value", value);
                 element.Value = value;
             }
-            else if (element.Type == typeof(int))
+            else if (element.Type == typeof(Vector4))
             {
-                var value = (int)element.Value;
-                value = EditorGUI.IntField(rect, "Value", value);
+                EditorGUI.LabelField(rect, "Value");
+                rect.x += EditorGUIUtility.labelWidth;
+                rect.width -= EditorGUIUtility.labelWidth;
+                var value = (Vector4)element.Value;
+                value = EditorGUI.Vector4Field(rect, "", value);
+                element.Value = value;
+            }
+            else if (element.Type == typeof(MapType))
+            {
+                var value = (MapType)element.Value;
+                value = (MapType)EditorGUI.EnumPopup(rect, "Value", value);
                 element.Value = value;
             }
         }
