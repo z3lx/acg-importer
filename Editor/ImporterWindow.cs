@@ -47,6 +47,16 @@ namespace z3lx.ACGImporter.Editor
                     new("_OcclusionMap", MapType.Occlusion)
                 }
 #else
+                shader = Shader.Find("Standard"),
+                shaderProperties = new List<ShaderProperty>()
+                {
+                    new("_MainTex", MapType.Color),
+                    new("_Glossiness", 1.0f),
+                    new("_MetallicGlossMap", MapType.MetallicSmoothness),
+                    new("_BumpMap", MapType.Normal),
+                    new("_ParallaxMap", MapType.Height),
+                    new("_OcclusionMap", MapType.Occlusion)
+                }
 #endif
             };
 
