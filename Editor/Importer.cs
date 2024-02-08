@@ -11,20 +11,28 @@ namespace z3lx.ACGImporter.Editor
 {
     public static class Importer
     {
-        public static void Import(string inputPath, string outputPath, Shader shader, ShaderProperty[] properties)
+        public static void Import(ImporterConfig config)
         {
-            inputPath = inputPath.TrimEnd(Path.DirectorySeparatorChar);
+            // Create directories
+            var inputPath = config.inputPath.TrimEnd(Path.DirectorySeparatorChar);
+            var outputPath = config.outputPath;
             var materialName = Path.GetFileName(inputPath);
+            var materialCategory = string.Concat(materialName.TakeWhile(char.IsLetter));
+            if (config.createCategoryDirectory)
+                outputPath = Path.Combine(outputPath, materialCategory);
+            if (config.createMaterialDirectory)
+                outputPath = Path.Combine(outputPath, materialName);
+            Directory.CreateDirectory(outputPath);
 
             // Create textures
             InitializeMaps(out var maps);
-            ResolveMaps(ref maps, properties);
+            ResolveMaps(ref maps, config.shaderProperties);
             if (!ReadMaps(ref maps, inputPath))
                 return;
-            WriteAndImportMaps(maps, outputPath, materialName, properties);
+            ImportMaps(maps, outputPath, materialName, config.shaderProperties);
 
             // Create material
-            var material = CreateMaterial(maps, shader, properties);
+            var material = CreateMaterial(maps, config.shader, config.shaderProperties);
             AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
         }
 
@@ -118,8 +126,8 @@ namespace z3lx.ACGImporter.Editor
             return true;
         }
 
-        private static void WriteAndImportMaps(
-            IDictionary<MapType, Texture2D> maps, string outputPath, string materialName, ShaderProperty[] properties)
+        private static void ImportMaps(IDictionary<MapType, Texture2D> maps,
+            string outputPath, string materialName, IEnumerable<ShaderProperty> properties)
         {
             var mapTypes = properties
                 .Where(property => property.Type == typeof(MapType))

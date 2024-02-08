@@ -14,25 +14,25 @@ namespace z3lx.ACGImporter.Editor
         private static void ShowWindow()
             => GetWindow<ImporterWindow>(false, "ACG Importer", true);
 
-        private string _inputPath = Application.dataPath;
-        private string _outputPath = GetActiveFolderPath();
-        private Shader _shader;
-        private readonly List<ShaderProperty> _shaderProperties = new()
-        {
-            new ShaderProperty("_BaseColorMap", MapType.Color),
-            new ShaderProperty("_NormalMap", MapType.Normal),
-            new ShaderProperty("_MaskMap", MapType.Mask),
-            new ShaderProperty("_HeightMap", MapType.Height),
-            new ShaderProperty("_DisplacementMode", 2),
-            new ShaderProperty("_HeightPoMAmplitude", 1f)
-        };
+        private ImporterConfig _config;
 
         private void OnEnable()
         {
-            if (!_shader)
-                _shader = Shader.Find("HDRP/Lit");
+            _config = new();
+            _config.inputPath = Application.dataPath;
+            _config.outputPath = GetActiveFolderPath();
+            _config.shader = Shader.Find("HDRP/Lit");
+            _config.shaderProperties = new List<ShaderProperty>()
+            {
+                new("_BaseColorMap", MapType.Color),
+                new("_NormalMap", MapType.Normal),
+                new("_MaskMap", MapType.Mask),
+                new("_HeightMap", MapType.Height),
+                new("_DisplacementMode", 2),
+                new("_HeightPoMAmplitude", 1f)
+            };
 
-            _shaderPropertiesList = new ReorderableList(_shaderProperties, typeof(string), true, true, true, true)
+            _shaderPropertiesList = new ReorderableList(_config.shaderProperties, typeof(string), true, true, true, true)
             {
                 drawHeaderCallback = DrawHeaderCallback,
                 drawElementCallback = DrawElementCallback,
@@ -47,6 +47,8 @@ namespace z3lx.ACGImporter.Editor
 
         private void OnGUI()
         {
+            EditorGUIUtility.labelWidth = 220;
+
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
             _showPathSettings = EditorGUILayout.Foldout(
@@ -54,8 +56,12 @@ namespace z3lx.ACGImporter.Editor
             if (_showPathSettings)
             {
                 EditorGUI.indentLevel++;
-                _inputPath = EditorGUILayout.TextField("Input Path", _inputPath);
-                _outputPath = EditorGUILayout.TextField("Output Path", _outputPath);
+                _config.inputPath = EditorGUILayout.TextField("Input Path", _config.inputPath);
+                _config.outputPath = EditorGUILayout.TextField("Output Path", _config.outputPath);
+                _config.createCategoryDirectory = EditorGUILayout.Toggle(
+                    "Create Category Directory", _config.createCategoryDirectory);
+                _config.createMaterialDirectory = EditorGUILayout.Toggle(
+                    "Create Material Directory", _config.createMaterialDirectory);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
@@ -65,18 +71,24 @@ namespace z3lx.ACGImporter.Editor
             if (_showMaterialSettings)
             {
                 EditorGUI.indentLevel++;
-                _shader = (Shader)EditorGUILayout.ObjectField("Shader", _shader, typeof(Shader), false);
+                _config.shader = (Shader)EditorGUILayout.ObjectField(
+                    "Shader", _config.shader, typeof(Shader), false);
                 _shaderPropertiesList.DoLayoutList();
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
 
             if (GUILayout.Button("Import materials") &&
-                Directory.Exists(_inputPath))
+                Directory.Exists(_config.inputPath))
             {
-                var inputPaths = Directory.GetDirectories(_inputPath);
-                foreach (var path in inputPaths)
-                    Importer.Import(path, _outputPath, _shader, _shaderProperties.ToArray());
+                var originalInputPath = _config.inputPath;
+                var inputPaths = Directory.GetDirectories(_config.inputPath);
+                foreach (var inputPath in inputPaths)
+                {
+                    _config.inputPath = inputPath;
+                    Importer.Import(_config);
+                }
+                _config.inputPath = originalInputPath;
             }
 
             EditorGUILayout.EndScrollView();
@@ -102,7 +114,7 @@ namespace z3lx.ACGImporter.Editor
             rect.y += EditorGUIUtility.standardVerticalSpacing;
             var lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            var element = _shaderProperties[index];
+            var element = _config.shaderProperties[index];
 
             // Draw label
             var label = string.IsNullOrEmpty(element.Name) ? "New Shader Property" : element.Name;
