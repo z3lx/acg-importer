@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -26,9 +26,10 @@ namespace z3lx.ACGImporter.Editor
 
             // Create textures
             InitializeMaps(out var maps);
-            ResolveMaps(ref maps, config.ShaderProperties);
-            if (!ReadMaps(ref maps, inputPath))
+            ResolveMaps(maps, config.ShaderProperties);
+            if (!ReadMaps(maps, inputPath))
                 return;
+            CreateMaps(maps);
             ImportMaps(maps, outputPath, materialName, config.ShaderProperties);
 
             // Create material
@@ -36,62 +37,44 @@ namespace z3lx.ACGImporter.Editor
             AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
         }
 
+        #region Private methods
+
         private static void InitializeMaps(out Dictionary<MapType, Texture2D> maps)
         {
             maps = new Dictionary<MapType, Texture2D>();
         }
 
-        private static void ResolveMaps(ref Dictionary<MapType, Texture2D> maps, IEnumerable<ShaderProperty> properties)
+        private static void ResolveMaps(IDictionary<MapType, Texture2D> maps,
+            IEnumerable<ShaderProperty> properties)
         {
             foreach (var prop in properties)
             {
                 if (prop.Type != typeof(MapType))
                     continue;
-                switch ((MapType)prop.Value)
+                var mapType = (MapType)prop.Value;
+                maps[mapType] = null;
+                switch (mapType)
                 {
-                    case MapType.Color:
-                        maps[MapType.Color] = null;
-                        break;
-                    case MapType.Normal:
-                        maps[MapType.Normal] = null;
-                        break;
-                    case MapType.Metallic:
-                        maps[MapType.Metallic] = null;
-                        break;
-                    case MapType.Roughness:
-                        maps[MapType.Roughness] = null;
-                        break;
-                    case MapType.Occlusion:
-                        maps[MapType.Occlusion] = null;
-                        break;
-                    case MapType.Height:
-                        maps[MapType.Height] = null;
-                        break;
                     case MapType.Smoothness:
-                        maps[MapType.Smoothness] = null;
                         maps[MapType.Roughness] = null;
                         break;
                     case MapType.MetallicGloss:
-                        maps[MapType.MetallicGloss] = null;
                         maps[MapType.Metallic] = null;
                         maps[MapType.Roughness] = null;
                         break;
                     case MapType.Mask:
-                        maps[MapType.Mask] = null;
                         maps[MapType.Color] = null;
                         maps[MapType.Metallic] = null;
                         maps[MapType.Occlusion] = null;
                         maps[MapType.Roughness] = null;
                         break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
             }
         }
 
-        private static bool ReadMaps(ref Dictionary<MapType, Texture2D> maps, string inputPath)
+        private static bool ReadMaps(IDictionary<MapType, Texture2D> maps, string inputPath)
         {
-            var mapTypes = new Dictionary<string, MapType>
+            var mapTypesToRead = new Dictionary<string, MapType>
             {
                 {"Color", MapType.Color},
                 {"NormalGL", MapType.Normal},
@@ -106,7 +89,7 @@ namespace z3lx.ACGImporter.Editor
             {
                 var fileName = Path.GetFileNameWithoutExtension(file);
                 var suffix = fileName.Split('_')[^1];
-                if (mapTypes.TryGetValue(suffix, out var mapType) && maps.ContainsKey(mapType))
+                if (mapTypesToRead.TryGetValue(suffix, out var mapType) && maps.ContainsKey(mapType))
                     maps[mapType] = Read(file, mapType == MapType.Color);
             }
 
@@ -116,14 +99,31 @@ namespace z3lx.ACGImporter.Editor
                 Debug.LogError($"Color map not found at {inputPath}.");
                 return false;
             }
-
-            if (maps.ContainsKey(MapType.Mask))
-                maps[MapType.Mask] = MapCreator.CreateMaskMap(maps);
-            if (maps.ContainsKey(MapType.MetallicGloss))
-                maps[MapType.MetallicGloss] = MapCreator.CreateMetallicGlossMap(maps);
-            if (maps.ContainsKey(MapType.Smoothness))
-                maps[MapType.Smoothness] = MapCreator.CreateSmoothnessMap(maps);
             return true;
+        }
+
+        private static void CreateMaps(IDictionary<MapType, Texture2D> maps)
+        {
+            var mapTypesToCreate = new[]
+            {
+                MapType.Mask,
+                MapType.MetallicGloss,
+                MapType.Smoothness
+            };
+
+            var readOnlyMaps = new ReadOnlyDictionary<MapType, Texture2D>(maps);
+            foreach (var mapType in mapTypesToCreate)
+            {
+                if (!maps.ContainsKey(mapType))
+                    continue;
+                maps[mapType] = mapType switch
+                {
+                    MapType.Mask => MapCreator.CreateMaskMap(readOnlyMaps),
+                    MapType.MetallicGloss => MapCreator.CreateMetallicGlossMap(readOnlyMaps),
+                    MapType.Smoothness => MapCreator.CreateSmoothnessMap(readOnlyMaps),
+                    _ => maps[mapType]
+                };
+            }
         }
 
         private static void ImportMaps(IDictionary<MapType, Texture2D> maps,
@@ -179,7 +179,7 @@ namespace z3lx.ACGImporter.Editor
         }
 
         private static Material CreateMaterial(
-            Dictionary<MapType, Texture2D> maps,
+            IReadOnlyDictionary<MapType, Texture2D> maps,
             Shader shader, IEnumerable<ShaderProperty> properties)
         {
             var material = new Material(shader);
@@ -206,5 +206,7 @@ namespace z3lx.ACGImporter.Editor
             }
             return material;
         }
+
+        #endregion
     }
 }

@@ -73,7 +73,7 @@ namespace z3lx.ACGImporter.Editor
             return t;
         }
 
-        public static Texture2D CreateMaskMap(Dictionary<MapType, Texture2D> maps)
+        public static Texture2D CreateMaskMap(IReadOnlyDictionary<MapType, Texture2D> maps)
         {
             ResetMaterial();
 
@@ -88,7 +88,7 @@ namespace z3lx.ACGImporter.Editor
             return Render(maps);
         }
 
-        public static Texture2D CreateSmoothnessMap(Dictionary<MapType, Texture2D> maps)
+        public static Texture2D CreateSmoothnessMap(IReadOnlyDictionary<MapType, Texture2D> maps)
         {
             ResetMaterial();
 
@@ -103,7 +103,7 @@ namespace z3lx.ACGImporter.Editor
             return Render(maps);
         }
 
-        public static Texture2D CreateMetallicGlossMap(Dictionary<MapType, Texture2D> maps)
+        public static Texture2D CreateMetallicGlossMap(IReadOnlyDictionary<MapType, Texture2D> maps)
         {
             ResetMaterial();
 
