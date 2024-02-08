@@ -78,7 +78,9 @@ namespace z3lx.ACGImporter.Editor
             ResetMaterial();
 
             SwizzleMat.SetTexture(Texture1, maps[MapType.Metallic]);
-            SwizzleMat.SetTexture(Texture2, maps[MapType.Occlusion]);
+            SwizzleMat.SetTexture(Texture2, maps[MapType.Occlusion] == null
+                ? Texture2D.whiteTexture
+                : maps[MapType.Occlusion]);
             SwizzleMat.SetTexture(Texture4, maps[MapType.Roughness]);
             SwizzleMat.SetVector(Swizzle4, new Vector4(1, 0, 0, 0));
             SwizzleMat.SetFloat(Flip4, 1);
