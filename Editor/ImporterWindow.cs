@@ -18,18 +18,36 @@ namespace z3lx.ACGImporter.Editor
 
         private void OnEnable()
         {
-            _config = new();
-            _config.inputPath = Application.dataPath;
-            _config.outputPath = GetActiveFolderPath();
-            _config.shader = Shader.Find("HDRP/Lit");
-            _config.shaderProperties = new List<ShaderProperty>()
+            _config = new ImporterConfig
             {
-                new("_BaseColorMap", MapType.Color),
-                new("_NormalMap", MapType.Normal),
-                new("_MaskMap", MapType.Mask),
-                new("_HeightMap", MapType.Height),
-                new("_DisplacementMode", 2),
-                new("_HeightPoMAmplitude", 1f)
+                inputPath = Application.dataPath,
+                outputPath = GetActiveFolderPath(),
+                createCategoryDirectory = false,
+                createMaterialDirectory = false,
+#if USING_HDRP
+                shader = Shader.Find("HDRP/Lit"),
+                shaderProperties = new List<ShaderProperty>()
+                {
+                    new("_BaseColorMap", MapType.Color),
+                    new("_NormalMap", MapType.Normal),
+                    new("_MaskMap", MapType.Mask),
+                    new("_HeightMap", MapType.Height),
+                    new("_DisplacementMode", 2),
+                    new("_HeightPoMAmplitude", 1f)
+                }
+#elif USING_URP
+                shader = Shader.Find("Universal Render Pipeline/Lit"),
+                shaderProperties = new List<ShaderProperty>()
+                {
+                    new("_BaseMap", MapType.Color),
+                    new("_MetallicGlossMap", MapType.MetallicSmoothness),
+                    new("_Smoothness", 1.0f),
+                    new("_BumpMap", MapType.Normal),
+                    new("_ParallaxMap", MapType.Height),
+                    new("_OcclusionMap", MapType.Occlusion)
+                }
+#else
+#endif
             };
 
             _shaderPropertiesList = new ReorderableList(_config.shaderProperties, typeof(string), true, true, true, true)
