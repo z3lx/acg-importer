@@ -4,6 +4,9 @@ using UnityEngine.Experimental.Rendering;
 
 namespace z3lx.ACGImporter.Editor
 {
+    /// <summary>
+    /// Provides static methods for creating different types of maps from provided textures.
+    /// </summary>
     public static class MapCreator
     {
         private static readonly Material SwizzleMat =
@@ -24,6 +27,9 @@ namespace z3lx.ACGImporter.Editor
         private static readonly int Flip3 = Shader.PropertyToID("_Flip3");
         private static readonly int Flip4 = Shader.PropertyToID("_Flip4");
 
+        /// <summary>
+        /// Resets the SwizzleMat material to its default state.
+        /// </summary>
         private static void ResetMaterial()
         {
             SwizzleMat.SetTexture(Texture1, null);
@@ -42,6 +48,11 @@ namespace z3lx.ACGImporter.Editor
             SwizzleMat.SetFloat(Flip4, 0);
         }
 
+        /// <summary>
+        /// Renders a Texture2D using the SwizzleMat material.
+        /// </summary>
+        /// <param name="maps">A read-only dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <returns>A rendered Texture2D object.</returns>
         private static Texture2D Render(IReadOnlyDictionary<MapType, Texture2D> maps)
         {
             var map = maps[MapType.Color];
@@ -57,6 +68,11 @@ namespace z3lx.ACGImporter.Editor
             return t;
         }
 
+        /// <summary>
+        /// Converts a RenderTexture to a Texture2D.
+        /// </summary>
+        /// <param name="rt">The RenderTexture to be converted.</param>
+        /// <returns>A converted Texture2D object.</returns>
         private static Texture2D ToTexture2D(RenderTexture rt)
         {
             var t = new Texture2D(
@@ -73,6 +89,11 @@ namespace z3lx.ACGImporter.Editor
             return t;
         }
 
+        /// <summary>
+        /// Creates a mask map from the provided maps.
+        /// </summary>
+        /// <param name="maps">A read-only dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <returns>A Texture2D object that represents the created mask map.</returns>
         public static Texture2D CreateMaskMap(IReadOnlyDictionary<MapType, Texture2D> maps)
         {
             ResetMaterial();
@@ -88,6 +109,11 @@ namespace z3lx.ACGImporter.Editor
             return Render(maps);
         }
 
+        /// <summary>
+        /// Creates a smoothness map from the provided maps.
+        /// </summary>
+        /// <param name="maps">A read-only dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <returns>A Texture2D object that represents the created smoothness map.</returns>
         public static Texture2D CreateSmoothnessMap(IReadOnlyDictionary<MapType, Texture2D> maps)
         {
             ResetMaterial();
@@ -103,6 +129,11 @@ namespace z3lx.ACGImporter.Editor
             return Render(maps);
         }
 
+        /// <summary>
+        /// Creates a metallic gloss map from the provided maps.
+        /// </summary>
+        /// <param name="maps">A read-only dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <returns>A Texture2D object that represents the created metallic gloss map.</returns>
         public static Texture2D CreateMetallicGlossMap(IReadOnlyDictionary<MapType, Texture2D> maps)
         {
             ResetMaterial();
