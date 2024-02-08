@@ -9,8 +9,14 @@ using Object = UnityEngine.Object;
 
 namespace z3lx.ACGImporter.Editor
 {
+    /// <summary>
+    /// Provides the functionality for importing textures and materials from ambientCG.
+    /// </summary>
     public static class Importer
     {
+        /// <summary>
+        /// Imports the textures and material based on the provided configuration.
+        /// </summary>
         public static void Import(ImporterConfig config)
         {
             // Create directories
@@ -39,11 +45,20 @@ namespace z3lx.ACGImporter.Editor
 
         #region Private methods
 
+        /// <summary>
+        /// Initializes the dictionary that will hold the mapping between MapType and Texture2D.
+        /// </summary>
+        /// <param name="maps">The dictionary to be initialized.</param>
         private static void InitializeMaps(out Dictionary<MapType, Texture2D> maps)
         {
             maps = new Dictionary<MapType, Texture2D>();
         }
 
+        /// <summary>
+        /// Resolves the maps based on the provided shader properties.
+        /// </summary>
+        /// <param name="maps">The dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <param name="properties">The shader properties to be used for resolving the maps.</param>
         private static void ResolveMaps(IDictionary<MapType, Texture2D> maps,
             IEnumerable<ShaderProperty> properties)
         {
@@ -72,6 +87,12 @@ namespace z3lx.ACGImporter.Editor
             }
         }
 
+        /// <summary>
+        /// Reads the maps from the provided input path.
+        /// </summary>
+        /// <param name="maps">The dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <param name="inputPath">The input path where the maps are located.</param>
+        /// <returns>True if the maps were found and read successfully, false otherwise.</returns>
         private static bool ReadMaps(IDictionary<MapType, Texture2D> maps, string inputPath)
         {
             var mapTypesToRead = new Dictionary<string, MapType>
@@ -102,6 +123,10 @@ namespace z3lx.ACGImporter.Editor
             return true;
         }
 
+        /// <summary>
+        /// Creates swizzled maps based on the provided maps.
+        /// </summary>
+        /// <param name="maps">The dictionary that holds the mapping between MapType and Texture2D.</param>
         private static void CreateMaps(IDictionary<MapType, Texture2D> maps)
         {
             var mapTypesToCreate = new[]
@@ -126,6 +151,13 @@ namespace z3lx.ACGImporter.Editor
             }
         }
 
+        /// <summary>
+        /// Imports the maps to the specified output path.
+        /// </summary>
+        /// <param name="maps">The dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <param name="outputPath">The output path where the maps will be imported.</param>
+        /// <param name="materialName">The name of the material associated with the maps.</param>
+        /// <param name="properties">The shader properties associated with the maps.</param>
         private static void ImportMaps(IDictionary<MapType, Texture2D> maps,
             string outputPath, string materialName, IEnumerable<ShaderProperty> properties)
         {
@@ -147,6 +179,12 @@ namespace z3lx.ACGImporter.Editor
             }
         }
 
+        /// <summary>
+        /// Reads a texture from the provided file path.
+        /// </summary>
+        /// <param name="filePath">The path to the file where the texture is located.</param>
+        /// <param name="sRGB">A boolean value indicating whether the texture uses sRGB color space.</param>
+        /// <returns>A Texture2D object representing the texture read from the file.</returns>
         private static Texture2D Read(string filePath, bool sRGB = false)
         {
             var texture = new Texture2D(
@@ -160,12 +198,22 @@ namespace z3lx.ACGImporter.Editor
             return texture;
         }
 
+        /// <summary>
+        /// Writes the provided Texture2D to a file at the specified path.
+        /// </summary>
+        /// <param name="source">The texture to be written to a file.</param>
+        /// <param name="filePath">The path to the written file.</param>
         private static void Write(Texture2D source, string filePath)
         {
             var data = source.EncodeToPNG();
             File.WriteAllBytes(filePath, data);
         }
 
+        /// <summary>
+        /// Imports the texture from the specified file path.
+        /// </summary>
+        /// <param name="filePath">The path to the file where the texture is located.</param>
+        /// <param name="type">The texture map type.</param>
         private static void Import(string filePath, MapType type)
         {
             AssetDatabase.ImportAsset(filePath, ImportAssetOptions.ForceUpdate);
@@ -178,8 +226,14 @@ namespace z3lx.ACGImporter.Editor
             importer.SaveAndReimport();
         }
 
-        private static Material CreateMaterial(
-            IReadOnlyDictionary<MapType, Texture2D> maps,
+        /// <summary>
+        /// Creates a material with the provided shader and properties.
+        /// </summary>
+        /// <param name="maps">A read-only dictionary that holds the mapping between MapType and Texture2D.</param>
+        /// <param name="shader">The shader to be used for the material.</param>
+        /// <param name="properties">The shader properties to be set on the material.</param>
+        /// <returns>A Material object with the specified shader, properties and textures.</returns>
+        private static Material CreateMaterial(IReadOnlyDictionary<MapType, Texture2D> maps,
             Shader shader, IEnumerable<ShaderProperty> properties)
         {
             var material = new Material(shader);
