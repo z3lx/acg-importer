@@ -9,7 +9,7 @@
         Occlusion,
         Height,
         Smoothness,
-        MetallicSmoothness,
+        MetallicGloss,
         Mask
     }
 }

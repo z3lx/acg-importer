@@ -40,7 +40,7 @@ namespace z3lx.ACGImporter.Editor
                 shaderProperties = new List<ShaderProperty>()
                 {
                     new("_BaseMap", MapType.Color),
-                    new("_MetallicGlossMap", MapType.MetallicSmoothness),
+                    new("_MetallicGlossMap", MapType.MetallicGloss),
                     new("_Smoothness", 1.0f),
                     new("_BumpMap", MapType.Normal),
                     new("_ParallaxMap", MapType.Height),
@@ -52,7 +52,7 @@ namespace z3lx.ACGImporter.Editor
                 {
                     new("_MainTex", MapType.Color),
                     new("_Glossiness", 1.0f),
-                    new("_MetallicGlossMap", MapType.MetallicSmoothness),
+                    new("_MetallicGlossMap", MapType.MetallicGloss),
                     new("_BumpMap", MapType.Normal),
                     new("_ParallaxMap", MapType.Height),
                     new("_OcclusionMap", MapType.Occlusion)
