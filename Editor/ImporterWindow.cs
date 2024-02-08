@@ -60,11 +60,12 @@ namespace z3lx.ACGImporter.Editor
 #endif
             };
 
-            _shaderPropertiesList = new ReorderableList(_config.shaderProperties, typeof(string), true, true, true, true)
+            _shaderPropertiesList = new ReorderableList(
+                _config.shaderProperties, typeof(string), true, true, true, true)
             {
                 drawHeaderCallback = DrawHeaderCallback,
                 drawElementCallback = DrawElementCallback,
-                elementHeight = 4 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing)
+                elementHeightCallback = ElementHeightCallback
             };
         }
 
@@ -139,7 +140,6 @@ namespace z3lx.ACGImporter.Editor
         private void DrawElementCallback(Rect rect, int index, bool active, bool focused)
         {
             rect.height = EditorGUIUtility.singleLineHeight;
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
             var lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             var element = _config.shaderProperties[index];
@@ -210,6 +210,14 @@ namespace z3lx.ACGImporter.Editor
                 value = (MapType)EditorGUI.EnumPopup(rect, "Value", value);
                 element.Value = value;
             }
+        }
+
+        private float ElementHeightCallback(int index)
+        {
+            if (_config.shaderProperties.Count == 0)
+                return EditorGUIUtility.singleLineHeight;
+            return EditorGUIUtility.singleLineHeight * 4 +
+                EditorGUIUtility.standardVerticalSpacing * 3;
         }
     }
 }
