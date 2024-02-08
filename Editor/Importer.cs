@@ -14,25 +14,25 @@ namespace z3lx.ACGImporter.Editor
         public static void Import(ImporterConfig config)
         {
             // Create directories
-            var inputPath = config.inputPath.TrimEnd(Path.DirectorySeparatorChar);
-            var outputPath = config.outputPath;
+            var inputPath = config.InputPath.TrimEnd(Path.DirectorySeparatorChar);
+            var outputPath = config.OutputPath;
             var materialName = Path.GetFileName(inputPath);
             var materialCategory = string.Concat(materialName.TakeWhile(char.IsLetter));
-            if (config.createCategoryDirectory)
+            if (config.CreateCategoryDirectory)
                 outputPath = Path.Combine(outputPath, materialCategory);
-            if (config.createMaterialDirectory)
+            if (config.CreateMaterialDirectory)
                 outputPath = Path.Combine(outputPath, materialName);
             Directory.CreateDirectory(outputPath);
 
             // Create textures
             InitializeMaps(out var maps);
-            ResolveMaps(ref maps, config.shaderProperties);
+            ResolveMaps(ref maps, config.ShaderProperties);
             if (!ReadMaps(ref maps, inputPath))
                 return;
-            ImportMaps(maps, outputPath, materialName, config.shaderProperties);
+            ImportMaps(maps, outputPath, materialName, config.ShaderProperties);
 
             // Create material
-            var material = CreateMaterial(maps, config.shader, config.shaderProperties);
+            var material = CreateMaterial(maps, config.Shader, config.ShaderProperties);
             AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
         }
 

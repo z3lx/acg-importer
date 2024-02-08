@@ -5,11 +5,11 @@ namespace z3lx.ACGImporter.Editor
 {
     public class ImporterConfig
     {
-        public string inputPath;
-        public string outputPath;
-        public bool createCategoryDirectory;
-        public bool createMaterialDirectory;
-        public Shader shader;
-        public List<ShaderProperty> shaderProperties;
+        public string InputPath;
+        public string OutputPath;
+        public bool CreateCategoryDirectory;
+        public bool CreateMaterialDirectory;
+        public Shader Shader;
+        public List<ShaderProperty> ShaderProperties;
     }
 }

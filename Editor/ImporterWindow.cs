@@ -10,23 +10,101 @@ namespace z3lx.ACGImporter.Editor
 {
     public class ImporterWindow : EditorWindow
     {
+        private Vector2 _scrollPosition;
+        private bool _showPathSettings = true;
+        private bool _showMaterialSettings = true;
+        private ReorderableList _shaderPropertiesList;
+
+        private ImporterConfig _config;
+
         [MenuItem("Tools/ACG Importer")]
         private static void ShowWindow()
             => GetWindow<ImporterWindow>(false, "ACG Importer", true);
 
-        private ImporterConfig _config;
-
         private void OnEnable()
         {
-            _config = new ImporterConfig
+            _config = GetDefaultConfig();
+
+            _shaderPropertiesList = new ReorderableList(
+                _config.ShaderProperties, typeof(string), true, true, true, true)
             {
-                inputPath = Application.dataPath,
-                outputPath = GetActiveFolderPath(),
-                createCategoryDirectory = false,
-                createMaterialDirectory = false,
+                drawHeaderCallback = DrawHeaderCallback,
+                drawElementCallback = DrawElementCallback,
+                elementHeightCallback = ElementHeightCallback
+            };
+        }
+
+        private void OnGUI()
+        {
+            EditorGUIUtility.labelWidth = 220;
+            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
+
+            // Draw path settings
+            {
+                _showPathSettings = EditorGUILayout.Foldout(
+                    _showPathSettings, "Path settings", true, EditorStyles.foldoutHeader);
+                if (_showPathSettings)
+                {
+                    EditorGUI.indentLevel++;
+                    _config.InputPath = EditorGUILayout.TextField("Input Path", _config.InputPath);
+                    _config.OutputPath = EditorGUILayout.TextField("Output Path", _config.OutputPath);
+                    _config.CreateCategoryDirectory = EditorGUILayout.Toggle(
+                        "Create Category Directory", _config.CreateCategoryDirectory);
+                    _config.CreateMaterialDirectory = EditorGUILayout.Toggle(
+                        "Create Material Directory", _config.CreateMaterialDirectory);
+                    EditorGUI.indentLevel--;
+                    EditorGUILayout.Space();
+                }
+            }
+
+            // Draw material settings
+            {
+                _showMaterialSettings = EditorGUILayout.Foldout(
+                    _showMaterialSettings, "Material settings", true, EditorStyles.foldoutHeader);
+                if (_showMaterialSettings)
+                {
+                    EditorGUI.indentLevel++;
+                    _config.Shader = (Shader)EditorGUILayout.ObjectField(
+                        "Shader", _config.Shader, typeof(Shader), false);
+                    _shaderPropertiesList.DoLayoutList();
+                    EditorGUI.indentLevel--;
+                    EditorGUILayout.Space();
+                }
+            }
+
+            // Draw import button
+            {
+                if (GUILayout.Button("Import materials") &&
+                    Directory.Exists(_config.InputPath))
+                {
+                    var originalInputPath = _config.InputPath;
+                    var inputPaths = Directory.GetDirectories(_config.InputPath);
+                    foreach (var inputPath in inputPaths)
+                    {
+                        _config.InputPath = inputPath;
+                        Importer.Import(_config);
+                    }
+
+                    _config.InputPath = originalInputPath;
+                }
+            }
+
+            EditorGUILayout.EndScrollView();
+        }
+
+        #region Configuration Methods
+
+        private static ImporterConfig GetDefaultConfig()
+        {
+            return new ImporterConfig
+            {
+                InputPath = Application.dataPath,
+                OutputPath = GetActiveFolderPath(),
+                CreateCategoryDirectory = false,
+                CreateMaterialDirectory = false,
 #if USING_HDRP
-                shader = Shader.Find("HDRP/Lit"),
-                shaderProperties = new List<ShaderProperty>()
+                Shader = Shader.Find("HDRP/Lit"),
+                ShaderProperties = new List<ShaderProperty>()
                 {
                     new("_BaseColorMap", MapType.Color),
                     new("_NormalMap", MapType.Normal),
@@ -36,8 +114,8 @@ namespace z3lx.ACGImporter.Editor
                     new("_HeightPoMAmplitude", 1f)
                 }
 #elif USING_URP
-                shader = Shader.Find("Universal Render Pipeline/Lit"),
-                shaderProperties = new List<ShaderProperty>()
+                Shader = Shader.Find("Universal Render Pipeline/Lit"),
+                ShaderProperties = new List<ShaderProperty>()
                 {
                     new("_BaseMap", MapType.Color),
                     new("_MetallicGlossMap", MapType.MetallicGloss),
@@ -47,8 +125,8 @@ namespace z3lx.ACGImporter.Editor
                     new("_OcclusionMap", MapType.Occlusion)
                 }
 #else
-                shader = Shader.Find("Standard"),
-                shaderProperties = new List<ShaderProperty>()
+                Shader = Shader.Find("Standard"),
+                ShaderProperties = new List<ShaderProperty>()
                 {
                     new("_MainTex", MapType.Color),
                     new("_Glossiness", 1.0f),
@@ -59,68 +137,6 @@ namespace z3lx.ACGImporter.Editor
                 }
 #endif
             };
-
-            _shaderPropertiesList = new ReorderableList(
-                _config.shaderProperties, typeof(string), true, true, true, true)
-            {
-                drawHeaderCallback = DrawHeaderCallback,
-                drawElementCallback = DrawElementCallback,
-                elementHeightCallback = ElementHeightCallback
-            };
-        }
-
-        private Vector2 _scrollPosition;
-        private bool _showPathSettings = true;
-        private bool _showMaterialSettings = true;
-        private ReorderableList _shaderPropertiesList;
-
-        private void OnGUI()
-        {
-            EditorGUIUtility.labelWidth = 220;
-
-            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-
-            _showPathSettings = EditorGUILayout.Foldout(
-                _showPathSettings, "Path settings", true, EditorStyles.foldoutHeader);
-            if (_showPathSettings)
-            {
-                EditorGUI.indentLevel++;
-                _config.inputPath = EditorGUILayout.TextField("Input Path", _config.inputPath);
-                _config.outputPath = EditorGUILayout.TextField("Output Path", _config.outputPath);
-                _config.createCategoryDirectory = EditorGUILayout.Toggle(
-                    "Create Category Directory", _config.createCategoryDirectory);
-                _config.createMaterialDirectory = EditorGUILayout.Toggle(
-                    "Create Material Directory", _config.createMaterialDirectory);
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space();
-            }
-
-            _showMaterialSettings = EditorGUILayout.Foldout(
-                _showMaterialSettings, "Material settings", true, EditorStyles.foldoutHeader);
-            if (_showMaterialSettings)
-            {
-                EditorGUI.indentLevel++;
-                _config.shader = (Shader)EditorGUILayout.ObjectField(
-                    "Shader", _config.shader, typeof(Shader), false);
-                _shaderPropertiesList.DoLayoutList();
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space();
-            }
-
-            if (GUILayout.Button("Import materials") &&
-                Directory.Exists(_config.inputPath))
-            {
-                var originalInputPath = _config.inputPath;
-                var inputPaths = Directory.GetDirectories(_config.inputPath);
-                foreach (var inputPath in inputPaths)
-                {
-                    _config.inputPath = inputPath;
-                    Importer.Import(_config);
-                }
-                _config.inputPath = originalInputPath;
-            }
-
-            EditorGUILayout.EndScrollView();
         }
 
         private static string GetActiveFolderPath()
@@ -132,6 +148,10 @@ namespace z3lx.ACGImporter.Editor
                 : getActiveFolderPath.Invoke(null, Array.Empty<object>()).ToString();
         }
 
+        #endregion
+
+        #region List Callbacks
+
         private void DrawHeaderCallback(Rect rect)
         {
             EditorGUI.LabelField(rect, "Shader Properties");
@@ -142,82 +162,93 @@ namespace z3lx.ACGImporter.Editor
             rect.height = EditorGUIUtility.singleLineHeight;
             var lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            var element = _config.shaderProperties[index];
+            var element = _config.ShaderProperties[index];
 
-            // Draw label
-            var label = string.IsNullOrEmpty(element.Name) ? "New Shader Property" : element.Name;
-            EditorGUI.LabelField(rect, label, EditorStyles.boldLabel);
-            rect.y += lineHeight;
+            // Draw element label
+            {
+                var label = string.IsNullOrEmpty(element.Name) ? "New Shader Property" : element.Name;
+                EditorGUI.LabelField(rect, label, EditorStyles.boldLabel);
+                rect.y += lineHeight;
+            }
 
             // Draw type popup
-            var options = new[] {"Int", "Float", "Vector4", "Color", "Texture2D"};
-            var choice = element.Type switch
             {
-                { } t when t == typeof(int) => 0,
-                { } t when t == typeof(float) => 1,
-                { } t when t == typeof(Vector4) => 2,
-                { } t when t == typeof(Color) => 3,
-                { } t when t == typeof(MapType) => 4,
-                _ => 0
-            };
-            choice = EditorGUI.Popup(rect, "Type", choice, options);
-            element.Type = choice switch
-            {
-                0 => typeof(int),
-                1 => typeof(float),
-                2 => typeof(Vector4),
-                3 => typeof(Color),
-                4 => typeof(MapType),
-                _ => element.Type
-            };
-            rect.y += lineHeight;
+                var options = new[] { "Int", "Float", "Vector4", "Color", "Texture2D" };
+                var choice = element.Type switch
+                {
+                    { } t when t == typeof(int) => 0,
+                    { } t when t == typeof(float) => 1,
+                    { } t when t == typeof(Vector4) => 2,
+                    { } t when t == typeof(Color) => 3,
+                    { } t when t == typeof(MapType) => 4,
+                    _ => 0
+                };
+                choice = EditorGUI.Popup(rect, "Type", choice, options);
+                element.Type = choice switch
+                {
+                    0 => typeof(int),
+                    1 => typeof(float),
+                    2 => typeof(Vector4),
+                    3 => typeof(Color),
+                    4 => typeof(MapType),
+                    _ => element.Type
+                };
+                rect.y += lineHeight;
+            }
 
             // Draw name field
-            element.Name = EditorGUI.TextField(rect, "Name", element.Name);
-            rect.y += lineHeight;
+            {
+                element.Name = EditorGUI.TextField(rect, "Name", element.Name);
+                rect.y += lineHeight;
+            }
 
             // Draw value field
-            if (element.Type == typeof(int))
             {
-                var value = (int)element.Value;
-                value = EditorGUI.IntField(rect, "Value", value);
-                element.Value = value;
-            }
-            else if (element.Type == typeof(float))
-            {
-                var value = (float)element.Value;
-                value = EditorGUI.FloatField(rect, "Value", value);
-                element.Value = value;
-            }
-            else if (element.Type == typeof(Vector4))
-            {
-                EditorGUI.LabelField(rect, "Value");
-                rect.x += EditorGUIUtility.labelWidth;
-                rect.width -= EditorGUIUtility.labelWidth;
-                var value = (Vector4)element.Value;
-                value = EditorGUI.Vector4Field(rect, "", value);
-                element.Value = value;
-            }
-            else if (element.Type == typeof(Color))
-            {
-                var value = (Color)element.Value;
-                value = EditorGUI.ColorField(rect, "Value", value);
-                element.Value = value;
-            }
-            else if (element.Type == typeof(MapType))
-            {
-                var value = (MapType)element.Value;
-                value = (MapType)EditorGUI.EnumPopup(rect, "Value", value);
-                element.Value = value;
+                var label = "Value";
+                if (element.Type == typeof(int))
+                {
+                    var value = (int)element.Value;
+                    value = EditorGUI.IntField(rect, label, value);
+                    element.Value = value;
+                }
+                else if (element.Type == typeof(float))
+                {
+                    var value = (float)element.Value;
+                    value = EditorGUI.FloatField(rect, label, value);
+                    element.Value = value;
+                }
+                else if (element.Type == typeof(Vector4))
+                {
+                    EditorGUI.LabelField(rect, label);
+                    rect.x += EditorGUIUtility.labelWidth;
+                    rect.width -= EditorGUIUtility.labelWidth;
+                    var value = (Vector4)element.Value;
+                    value = EditorGUI.Vector4Field(rect, string.Empty, value);
+                    element.Value = value;
+                }
+                else if (element.Type == typeof(Color))
+                {
+                    var value = (Color)element.Value;
+                    value = EditorGUI.ColorField(rect, label, value);
+                    element.Value = value;
+                }
+                else if (element.Type == typeof(MapType))
+                {
+                    var value = (MapType)element.Value;
+                    value = (MapType)EditorGUI.EnumPopup(rect, label, value);
+                    element.Value = value;
+                }
             }
         }
 
         private float ElementHeightCallback(int index)
         {
-            if (_config.shaderProperties.Count == 0)
+            if (_config.ShaderProperties.Count == 0)
                 return EditorGUIUtility.singleLineHeight;
             return EditorGUIUtility.singleLineHeight * 4 +
                 EditorGUIUtility.standardVerticalSpacing * 3;
         }
+
+        #endregion
     }
 }
