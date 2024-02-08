@@ -8,6 +8,10 @@ using UnityEngine;
 
 namespace z3lx.ACGImporter.Editor
 {
+    /// <summary>
+    /// Provides a custom window in the Unity editor for bulk
+    /// importing textures and materials from ambientCG.
+    /// </summary>
     public class ImporterWindow : EditorWindow
     {
         private Vector2 _scrollPosition;
@@ -21,6 +25,9 @@ namespace z3lx.ACGImporter.Editor
         private static void ShowWindow()
             => GetWindow<ImporterWindow>(false, "ACG Importer", true);
 
+        /// <summary>
+        /// Initializes the importer window.
+        /// </summary>
         private void OnEnable()
         {
             _config = GetDefaultConfig();
@@ -34,6 +41,9 @@ namespace z3lx.ACGImporter.Editor
             };
         }
 
+        /// <summary>
+        /// Handles the GUI for the importer window.
+        /// </summary>
         private void OnGUI()
         {
             EditorGUIUtility.labelWidth = 220;
@@ -94,6 +104,11 @@ namespace z3lx.ACGImporter.Editor
 
         #region Configuration Methods
 
+        /// <summary>
+        /// Gets the default configuration for the importer
+        /// based on the render pipeline in use.
+        /// </summary>
+        /// <returns>A new instance of the ImporterConfig class.</returns>
         private static ImporterConfig GetDefaultConfig()
         {
             return new ImporterConfig
@@ -139,6 +154,10 @@ namespace z3lx.ACGImporter.Editor
             };
         }
 
+        /// <summary>
+        /// Gets the active folder path in the Unity project.
+        /// </summary>
+        /// <returns>The path to the active folder.</returns>
         private static string GetActiveFolderPath()
         {
             var getActiveFolderPath = typeof(ProjectWindowUtil)
@@ -152,11 +171,17 @@ namespace z3lx.ACGImporter.Editor
 
         #region List Callbacks
 
+        /// <summary>
+        /// Draws the header of the shader properties list.
+        /// </summary>
         private void DrawHeaderCallback(Rect rect)
         {
             EditorGUI.LabelField(rect, "Shader Properties");
         }
 
+        /// <summary>
+        /// Draws each element of the shader properties list.
+        /// </summary>
         private void DrawElementCallback(Rect rect, int index, bool active, bool focused)
         {
             rect.height = EditorGUIUtility.singleLineHeight;
@@ -241,6 +266,11 @@ namespace z3lx.ACGImporter.Editor
             }
         }
 
+        /// <summary>
+        /// Determines the height of each element in the shader properties list.
+        /// </summary>
+        /// <param name="index">The index of the element in the list.</param>
+        /// <returns>The height of the element in the list.</returns>
         private float ElementHeightCallback(int index)
         {
             if (_config.ShaderProperties.Count == 0)
