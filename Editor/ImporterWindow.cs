@@ -56,12 +56,29 @@ namespace z3lx.ACGImporter.Editor
                 if (_showPathSettings)
                 {
                     EditorGUI.indentLevel++;
-                    _config.InputPath = EditorGUILayout.TextField("Input Path", _config.InputPath);
-                    _config.OutputPath = EditorGUILayout.TextField("Output Path", _config.OutputPath);
+                    _config.InputPath = EditorGUILayout.TextField(
+                        new GUIContent("Input Path",
+                            "The parent directory containing either zip file(s) or " +
+                            "folder(s) with associated textures to import."),
+                        _config.InputPath);
+                    _config.OutputPath = EditorGUILayout.TextField(
+                        new GUIContent("Input Path",
+                            "The relative path within the Unity project where the " +
+                            "imported textures and materials will be saved."),
+                        _config.OutputPath);
                     _config.CreateCategoryDirectory = EditorGUILayout.Toggle(
-                        "Create Category Directory", _config.CreateCategoryDirectory);
+                        new GUIContent("Create Category Directory",
+                            "If enabled, a separate directory named after the material category " +
+                            "(e.g., 'Bricks' for 'Bricks090' material) " +
+                            "will be created within the OutputPath. The imported textures " +
+                            "and materials of that category will be saved in this directory."),
+                        _config.CreateCategoryDirectory);
                     _config.CreateMaterialDirectory = EditorGUILayout.Toggle(
-                        "Create Material Directory", _config.CreateMaterialDirectory);
+                        new GUIContent("Create Material Directory",
+                            "If enabled, a separate directory named after the material " +
+                            "will be created within the OutputPath. The imported textures " +
+                            "and materials of that material will be saved in this directory."),
+                        _config.CreateMaterialDirectory);
                     EditorGUI.indentLevel--;
                     EditorGUILayout.Space();
                 }
@@ -75,7 +92,9 @@ namespace z3lx.ACGImporter.Editor
                 {
                     EditorGUI.indentLevel++;
                     _config.Shader = (Shader)EditorGUILayout.ObjectField(
-                        "Shader", _config.Shader, typeof(Shader), false);
+                        new GUIContent("Shader",
+                            "The shader to be used for the imported materials."),
+                        _config.Shader, typeof(Shader), false);
                     _shaderPropertiesList.DoLayoutList();
                     EditorGUI.indentLevel--;
                     EditorGUILayout.Space();
@@ -166,7 +185,9 @@ namespace z3lx.ACGImporter.Editor
         /// </summary>
         private void DrawHeaderCallback(Rect rect)
         {
-            EditorGUI.LabelField(rect, "Shader Properties");
+            var label = new GUIContent("Shader Properties",
+                "The shader properties to be set on the material.");
+            EditorGUI.LabelField(rect, label);
         }
 
         /// <summary>
@@ -188,7 +209,14 @@ namespace z3lx.ACGImporter.Editor
 
             // Draw type popup
             {
-                var options = new[] { "Int", "Float", "Vector4", "Color", "Texture2D" };
+                var options = new[]
+                {
+                    new GUIContent("Int"),
+                    new GUIContent("Float"),
+                    new GUIContent("Vector4"),
+                    new GUIContent("Color"),
+                    new GUIContent("Texture2D")
+                };
                 var choice = element.Type switch
                 {
                     { } t when t == typeof(int) => 0,
@@ -198,7 +226,8 @@ namespace z3lx.ACGImporter.Editor
                     { } t when t == typeof(MapType) => 4,
                     _ => 0
                 };
-                choice = EditorGUI.Popup(rect, "Type", choice, options);
+                var label = new GUIContent("Type", "The type of the shader property.");
+                choice = EditorGUI.Popup(rect, label, choice, options);
                 element.Type = choice switch
                 {
                     0 => typeof(int),
@@ -213,13 +242,14 @@ namespace z3lx.ACGImporter.Editor
 
             // Draw name field
             {
-                element.Name = EditorGUI.TextField(rect, "Name", element.Name);
+                var label = new GUIContent("Name", "The name of the shader property.");
+                element.Name = EditorGUI.TextField(rect, label, element.Name);
                 rect.y += lineHeight;
             }
 
             // Draw value field
             {
-                var label = "Value";
+                var label = new GUIContent("Value", "The value of the shader property.");
                 if (element.Type == typeof(int))
                 {
                     var value = (int)element.Value;
