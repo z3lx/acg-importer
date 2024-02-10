@@ -139,9 +139,11 @@ namespace z3lx.ACGImporter.Editor
                 switch (mapType)
                 {
                     case MapType.Smoothness:
+                        maps[MapType.Color] = null;
                         maps[MapType.Roughness] = null;
                         break;
                     case MapType.MetallicGloss:
+                        maps[MapType.Color] = null;
                         maps[MapType.Metallic] = null;
                         maps[MapType.Roughness] = null;
                         break;
