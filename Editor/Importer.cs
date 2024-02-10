@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -15,14 +17,15 @@ namespace z3lx.ACGImporter.Editor
     public static class Importer
     {
         /// <summary>
-        /// Imports the textures and material based on the provided configuration.
+        /// Imports a single directory containing textures based on the provided configuration.
         /// </summary>
-        public static void Import(ImporterConfig config)
+        /// <param name="config">The configuration for the import process.</param>
+        public static void ImportSingleDirectory(ImporterConfig config)
         {
             // Create directories
-            var inputPath = config.InputPath.TrimEnd(Path.DirectorySeparatorChar);
+            var inputPath = Path.GetFullPath(config.InputPath);
             var outputPath = config.OutputPath;
-            var materialName = Path.GetFileName(inputPath);
+            var materialName = Path.GetFileName(inputPath).Split("_")[0];
             var materialCategory = string.Concat(materialName.TakeWhile(char.IsLetter));
             if (config.CreateCategoryDirectory)
                 outputPath = Path.Combine(outputPath, materialCategory);
@@ -41,6 +44,71 @@ namespace z3lx.ACGImporter.Editor
             // Create material
             var material = CreateMaterial(maps, config.Shader, config.ShaderProperties);
             AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
+        }
+
+        /// <summary>
+        /// Imports a single zip file containing textures based on the provided configuration.
+        /// </summary>
+        /// <param name="config">The configuration for the import process.</param>
+        public static void ImportSingleZip(ImporterConfig config)
+        {
+            var originalInputPath = config.InputPath;
+            var extractPath = Path.Combine(
+                Path.GetTempPath(),
+                Guid.NewGuid().ToString(),
+                Path.GetFileNameWithoutExtension(config.InputPath));
+            ZipFile.ExtractToDirectory(config.InputPath, extractPath);
+            config.InputPath = extractPath;
+            ImportSingleDirectory(config);
+            config.InputPath = originalInputPath;
+            Directory.Delete(Path.GetDirectoryName(extractPath)!, true);
+        }
+
+        /// <summary>
+        /// Imports multiple directories containing textures based on the provided configuration.
+        /// </summary>
+        /// <param name="config">The configuration for the import process.</param>
+        public static void ImportBulkDirectory(ImporterConfig config)
+        {
+            var originalInputPath = config.InputPath;
+            var inputPaths = Directory.GetDirectories(config.InputPath);
+            foreach (var inputPath in inputPaths)
+            {
+                config.InputPath = inputPath;
+                ImportSingleDirectory(config);
+            }
+            config.InputPath = originalInputPath;
+        }
+
+        /// <summary>
+        /// Imports multiple zip files containing textures based on the provided configuration.
+        /// </summary>
+        /// <param name="config">The configuration for the import process.</param>
+        public static void ImportBulkZip(ImporterConfig config)
+        {
+            var originalInputPath = config.InputPath;
+            var inputFiles = Directory.GetFiles(config.InputPath, "*.zip");
+            foreach (var inputFile in inputFiles)
+            {
+                config.InputPath = inputFile;
+                ImportSingleZip(config);
+            }
+            config.InputPath = originalInputPath;
+        }
+
+        /// <summary>
+        /// Automatically imports textures and materials based on the provided configuration
+        /// and on the contents of the input path.
+        /// </summary>
+        /// <param name="config">The configuration for the import process.</param>
+        public static void ImportAuto(ImporterConfig config)
+        {
+            if (Directory.EnumerateFiles(config.InputPath, "*.zip").Any())
+                ImportBulkZip(config);
+            else if (Directory.EnumerateDirectories(config.InputPath).Any())
+                ImportBulkDirectory(config);
+            else
+                Debug.LogError("No valid input found.");
         }
 
         #region Private methods

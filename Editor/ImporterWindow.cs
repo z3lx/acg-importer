@@ -9,7 +9,7 @@ using UnityEngine;
 namespace z3lx.ACGImporter.Editor
 {
     /// <summary>
-    /// Provides a custom window in the Unity editor for bulk
+    /// Provides a custom window in the Unity editor for
     /// importing textures and materials from ambientCG.
     /// </summary>
     public class ImporterWindow : EditorWindow
@@ -86,17 +86,7 @@ namespace z3lx.ACGImporter.Editor
             {
                 if (GUILayout.Button("Import materials") &&
                     Directory.Exists(_config.InputPath))
-                {
-                    var originalInputPath = _config.InputPath;
-                    var inputPaths = Directory.GetDirectories(_config.InputPath);
-                    foreach (var inputPath in inputPaths)
-                    {
-                        _config.InputPath = inputPath;
-                        Importer.Import(_config);
-                    }
-
-                    _config.InputPath = originalInputPath;
-                }
+                    Importer.ImportAuto(_config);
             }
 
             EditorGUILayout.EndScrollView();
