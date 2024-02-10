@@ -17,10 +17,33 @@ namespace z3lx.ACGImporter.Editor
     public static class Importer
     {
         /// <summary>
+        /// Automatically imports textures and materials based on the provided configuration
+        /// and on the contents of the input path.
+        /// </summary>
+        /// <param name="config">The configuration for the import process.</param>
+        public static void AutoImport(ImporterConfig config)
+        {
+            if (File.Exists(config.InputPath) &&
+                Path.GetExtension(config.InputPath) == ".zip")
+                ImportSingleZip(config);
+            else if (Directory.Exists(config.InputPath))
+                if (Directory.EnumerateFiles(config.InputPath, "*.zip").Any())
+                    ImportBulkZip(config);
+                else if (Directory.EnumerateFiles(config.InputPath, "*.mtlx").Any())
+                    ImportSingleDirectory(config);
+                else if (Directory.EnumerateDirectories(config.InputPath).Any())
+                    ImportBulkDirectory(config);
+                else
+                    Debug.LogError($"No suitable files found in the directory {config.InputPath}.");
+            else
+                Debug.LogError($"Input path {config.InputPath} does not exist.");
+        }
+
+        /// <summary>
         /// Imports a single directory containing textures based on the provided configuration.
         /// </summary>
         /// <param name="config">The configuration for the import process.</param>
-        public static void ImportSingleDirectory(ImporterConfig config)
+        private static void ImportSingleDirectory(ImporterConfig config)
         {
             // Create directories
             var inputPath = Path.GetFullPath(config.InputPath);
@@ -50,7 +73,7 @@ namespace z3lx.ACGImporter.Editor
         /// Imports a single zip file containing textures based on the provided configuration.
         /// </summary>
         /// <param name="config">The configuration for the import process.</param>
-        public static void ImportSingleZip(ImporterConfig config)
+        private static void ImportSingleZip(ImporterConfig config)
         {
             var originalInputPath = config.InputPath;
             var extractPath = Path.Combine(
@@ -68,7 +91,7 @@ namespace z3lx.ACGImporter.Editor
         /// Imports multiple directories containing textures based on the provided configuration.
         /// </summary>
         /// <param name="config">The configuration for the import process.</param>
-        public static void ImportBulkDirectory(ImporterConfig config)
+        private static void ImportBulkDirectory(ImporterConfig config)
         {
             var originalInputPath = config.InputPath;
             var inputPaths = Directory.GetDirectories(config.InputPath);
@@ -84,7 +107,7 @@ namespace z3lx.ACGImporter.Editor
         /// Imports multiple zip files containing textures based on the provided configuration.
         /// </summary>
         /// <param name="config">The configuration for the import process.</param>
-        public static void ImportBulkZip(ImporterConfig config)
+        private static void ImportBulkZip(ImporterConfig config)
         {
             var originalInputPath = config.InputPath;
             var inputFiles = Directory.GetFiles(config.InputPath, "*.zip");
@@ -94,21 +117,6 @@ namespace z3lx.ACGImporter.Editor
                 ImportSingleZip(config);
             }
             config.InputPath = originalInputPath;
-        }
-
-        /// <summary>
-        /// Automatically imports textures and materials based on the provided configuration
-        /// and on the contents of the input path.
-        /// </summary>
-        /// <param name="config">The configuration for the import process.</param>
-        public static void ImportAuto(ImporterConfig config)
-        {
-            if (Directory.EnumerateFiles(config.InputPath, "*.zip").Any())
-                ImportBulkZip(config);
-            else if (Directory.EnumerateDirectories(config.InputPath).Any())
-                ImportBulkDirectory(config);
-            else
-                Debug.LogError("No valid input found.");
         }
 
         #region Private methods

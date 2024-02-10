@@ -58,8 +58,10 @@ namespace z3lx.ACGImporter.Editor
                     EditorGUI.indentLevel++;
                     _config.InputPath = EditorGUILayout.TextField(
                         new GUIContent("Input Path",
-                            "The parent directory containing either zip file(s) or " +
-                            "folder(s) with associated textures to import."),
+                            "The directory or zip file to import. This can be a single zip file, " +
+                            "a single folder, a parent directory containing multiple zip files, " +
+                            "or a parent directory containing multiple subfolders with associated " +
+                            "textures to import."),
                         _config.InputPath);
                     _config.OutputPath = EditorGUILayout.TextField(
                         new GUIContent("Input Path",
@@ -103,9 +105,8 @@ namespace z3lx.ACGImporter.Editor
 
             // Draw import button
             {
-                if (GUILayout.Button("Import materials") &&
-                    Directory.Exists(_config.InputPath))
-                    Importer.ImportAuto(_config);
+                if (GUILayout.Button("Import materials"))
+                    Importer.AutoImport(_config);
             }
 
             EditorGUILayout.EndScrollView();
