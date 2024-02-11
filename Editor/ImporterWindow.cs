@@ -64,7 +64,7 @@ namespace z3lx.ACGImporter.Editor
                             "textures to import."),
                         _config.InputPath);
                     _config.OutputPath = EditorGUILayout.TextField(
-                        new GUIContent("Input Path",
+                        new GUIContent("Output Path",
                             "The relative path within the Unity project where the " +
                             "imported textures and materials will be saved."),
                         _config.OutputPath);
