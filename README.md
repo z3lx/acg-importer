@@ -2,9 +2,9 @@
 ![Unity Version](https://img.shields.io/badge/unity-2019.3%2B-lightgrey)
 
 # Unity AmbientCG Importer
-acg-importer is a Unity package that simplifies the process of importing textures into Unity from AmbientCG.
+acg-importer is a Unity package that simplifies the process of importing textures from AmbientCG into Unity.
 
-https://github.com/z3lx/acg-importer/assets/57017122/73854723-4e87-405b-9f0d-1cba4ec6deda
+https://github.com/z3lx/acg-importer/assets/57017122/9c112458-8436-445c-9ee2-280095b93327
 
 ## Features
 - **Unity Custom Editor**: Utilize a custom editor within Unity for a user-friendly experience, complete with tooltips for more information.
