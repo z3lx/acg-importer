@@ -56,6 +56,7 @@ namespace z3lx.ACGImporter.Editor
                 if (_showPathSettings)
                 {
                     EditorGUI.indentLevel++;
+                    EditorGUILayout.BeginHorizontal();
                     _config.InputPath = EditorGUILayout.TextField(
                         new GUIContent("Input Path",
                             "The directory or zip file to import. This can be a single zip file, " +
@@ -63,11 +64,31 @@ namespace z3lx.ACGImporter.Editor
                             "or a parent directory containing multiple subfolders with associated " +
                             "textures to import."),
                         _config.InputPath);
+                    if (GUILayout.Button("...", GUILayout.Width(20)))
+                    {
+                        var path = EditorUtility.OpenFolderPanel("Select input path", "", "");
+                        if (!string.IsNullOrEmpty(path))
+                            _config.InputPath = path;
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal();
                     _config.OutputPath = EditorGUILayout.TextField(
                         new GUIContent("Output Path",
                             "The relative path within the Unity project where the " +
                             "imported textures and materials will be saved."),
                         _config.OutputPath);
+                    if (GUILayout.Button("...", GUILayout.Width(20)))
+                    {
+                        var dataPath = Application.dataPath;
+                        var rootPath = Path.GetDirectoryName(dataPath);
+                        var path = EditorUtility.SaveFolderPanel("Select output path", dataPath, "");
+                        if (!string.IsNullOrEmpty(path))
+                            if (path.StartsWith(dataPath))
+                                _config.OutputPath = Path.GetRelativePath(rootPath, path).Replace("\\", "/");
+                            else
+                                Debug.LogError("Output path must be within the Unity project.");
+                    }
+                    EditorGUILayout.EndHorizontal();
                     _config.CreateCategoryDirectory = EditorGUILayout.Toggle(
                         new GUIContent("Create Category Directory",
                             "If enabled, a separate directory named after the material category " +
