@@ -21,10 +21,12 @@ Before proceeding with this method, ensure you have Git installed on your system
 3. Enter the following git URL: `https://github.com/z3lx/acg-importer.git`
 
 ### Manual Installation
-1. Clone this repository to your local machine and unzip it.
-2. Open Unity and navigate to **Window → Package Manager**.
-3. Click on the top left button with a "**+**" on it to add a new package. In the dropdown, select "**Add package from disk**".
-4. Navigate to the unzipped package, and locate the **package.json** file.
+1. Go to the [Releases](https://github.com/z3lx/acg-importer/releases) section of this repository.
+2. Download the latest available Unity package.
+3. Open your Unity project and navigate to the "**Assets**" tab at the top.
+4. Choose "**Import Package**," then select "**Custom Package...**".
+5. Locate and select the downloaded Unity package.
+6. Follow the prompts to complete the import process.
 
 ## Usage
 1. Open the import window located in **Tools → ACG Importer**.
