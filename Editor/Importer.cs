@@ -66,7 +66,7 @@ namespace z3lx.ACGImporter.Editor
 
             // Create material
             var material = CreateMaterial(maps, config.Shader, config.ShaderProperties);
-            AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + ".mat"));
+            AssetDatabase.CreateAsset(material, Path.Combine(outputPath, materialName + "_Material.mat"));
         }
 
         /// <summary>
